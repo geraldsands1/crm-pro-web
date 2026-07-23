@@ -1,0 +1,18 @@
+/*
+ * Global styles are intentionally almost empty.
+ *
+ * MUI's <CssBaseline /> (mounted in AppProviders) supplies the reset and
+ * the base typography, and every component styles itself through the
+ * theme. Keeping a second, competing stylesheet here is how a design
+ * system quietly stops being the source of truth.
+ *
+ * The only rule below is the one CssBaseline cannot express: the root
+ * elements need a full-height box so a 100vh layout can actually fill the
+ * viewport.
+ */
+
+html,
+body,
+#root {
+  height: 100%;
+}

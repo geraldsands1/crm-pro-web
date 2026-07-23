@@ -1,0 +1,39 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies — restored with `npm ci` from package-lock.json.
+node_modules
+
+# Build output. Deliberately NOT committed: VITE_API_BASE_URL is compiled
+# into the bundle, so a build is environment-specific and a committed
+# dist/ would be wrong for every environment but the one it was made in.
+dist
+dist-ssr
+*.local
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Per-environment config. .env.example is committed as the template;
+# the resolved .env is not, so a developer's local backend URL never
+# ships to anyone else.
+.env
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
