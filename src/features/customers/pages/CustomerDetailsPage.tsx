@@ -13,16 +13,24 @@ import {
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
+import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/EditOutlined';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 
 import { PageError } from '../../../components/feedback/PageError';
+import { NotificationSnackbar } from '../../../components/feedback/NotificationSnackbar';
 import { appRoutes } from '../../../app/router/routes';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { CustomerStatusChip } from '../components/CustomerStatusChip';
+import { CustomerProfileSummary } from '../components/CustomerProfileSummary';
 import { DeleteCustomerDialog } from '../components/DeleteCustomerDialog';
 import { VipBadge } from '../components/VipBadge';
 import { CustomerPaymentsTab } from '../../payments/components/CustomerPaymentsTab';
+import { RecordPaymentDialog } from '../../payments/components/RecordPaymentDialog';
+import { usePaymentHistory } from '../../payments/hooks/usePaymentHistory';
+import { useCreatePayment } from '../../payments/hooks/usePaymentMutations';
+import { toCreatePaymentInput } from '../../payments/schemas/paymentSchema';
+import type { PaymentFormOutput } from '../../payments/schemas/paymentSchema';
 import { useCustomer } from '../hooks/useCustomer';
 import { useDeleteCustomer } from '../hooks/useCustomerMutations';
 import { customerFullName } from '../utils/sortCustomers';
@@ -80,11 +88,37 @@ export function CustomerDetailsPage() {
   const isAdmin = user?.role === 'admin';
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isRecordOpen, setIsRecordOpen] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>('profile');
 
   const { data: customer, isPending, isError, error, refetch } =
     useCustomer(customerId);
   const deleteMutation = useDeleteCustomer();
+
+  // Payment summary for the profile (Lifetime Payments, Last Payment). Shares
+  // the same query key as the Payments tab, so React Query dedupes it to one
+  // request rather than fetching the history twice.
+  const { data: paymentData, isPending: isSummaryPending } =
+    usePaymentHistory(customerId);
+  const createMutation = useCreatePayment(customerId);
+
+  const handleRecord = async (values: PaymentFormOutput): Promise<void> => {
+    try {
+      const result = await createMutation.mutateAsync(
+        toCreatePaymentInput(customerId, values),
+      );
+      setIsRecordOpen(false);
+      setNotification(
+        result.vipGranted
+          ? 'Customer has been upgraded to VIP.'
+          : 'Payment recorded.',
+      );
+    } catch {
+      // Held by the mutation; the dialog renders the error. Rethrowing
+      // would surface an unhandled rejection in the console.
+    }
+  };
 
   const backToList = (): void => {
     void navigate(appRoutes.customers);
@@ -152,6 +186,17 @@ export function CustomerDetailsPage() {
 
           <Stack direction="row" spacing={1}>
             <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                createMutation.reset();
+                setIsRecordOpen(true);
+              }}
+            >
+              Record Payment
+            </Button>
+
+            <Button
               variant="outlined"
               startIcon={<EditIcon />}
               onClick={() => {
@@ -201,14 +246,23 @@ export function CustomerDetailsPage() {
           customerName={customerFullName(customer)}
         />
       ) : (
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 3,
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-          alignItems: 'start',
-        }}
-      >
+      <Stack spacing={3}>
+        {/* RC2.7: payment figures at the top of the profile. Outstanding
+            Balance is "Not tracked" (this CRM records payments, not
+            amounts owed); the other two come from the backend summary. */}
+        <CustomerProfileSummary
+          summary={paymentData?.summary ?? null}
+          isLoading={isSummaryPending}
+        />
+
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 3,
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+            alignItems: 'start',
+          }}
+        >
         <Card>
           <CardContent>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
@@ -280,7 +334,8 @@ export function CustomerDetailsPage() {
             />
           </CardContent>
         </Card>
-      </Box>
+        </Box>
+      </Stack>
       )}
 
       <DeleteCustomerDialog
@@ -302,6 +357,29 @@ export function CustomerDetailsPage() {
               backToList();
             },
           });
+        }}
+      />
+
+      {/* Quick Record Payment — same dialog and mutation the Payments tab
+          uses, so the profile summary and history refresh on success via
+          the shared query invalidation. */}
+      <RecordPaymentDialog
+        open={isRecordOpen}
+        customerName={customerFullName(customer)}
+        isSaving={createMutation.isPending}
+        submitError={createMutation.error?.message ?? null}
+        onCancel={() => {
+          setIsRecordOpen(false);
+          createMutation.reset();
+        }}
+        onSubmit={handleRecord}
+      />
+
+      <NotificationSnackbar
+        open={notification !== null}
+        message={notification ?? ''}
+        onClose={() => {
+          setNotification(null);
         }}
       />
     </Stack>
