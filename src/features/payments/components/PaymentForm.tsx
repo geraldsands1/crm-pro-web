@@ -134,6 +134,15 @@ export function PaymentForm({
             helperText={errors.paid_at?.message ?? ' '}
             disabled={isSubmitting}
           />
+
+          <TextField
+            {...register('reference_no')}
+            label="Reference / Txn no."
+            fullWidth
+            error={Boolean(errors.reference_no)}
+            helperText={errors.reference_no?.message ?? 'Optional'}
+            disabled={isSubmitting}
+          />
         </Box>
 
         <TextField

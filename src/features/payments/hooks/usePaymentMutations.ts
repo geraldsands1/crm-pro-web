@@ -26,13 +26,21 @@ function invalidateAffected(
   queryClient: ReturnType<typeof useQueryClient>,
   customerId: string,
 ): void {
+  // Customer payment history (Customer Details tab).
   void queryClient.invalidateQueries({
     queryKey: paymentKeys.history(customerId),
   });
+  // Standalone Payments page + its per-customer totals: a payment recorded
+  // or deleted from the Customer Details tab must show there immediately
+  // too, without a refresh.
+  void queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
+  // Customer balance and VIP status on the details header.
   void queryClient.invalidateQueries({
     queryKey: customerKeys.detail(customerId),
   });
+  // VIP badge in the customer list.
   void queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
+  // Dashboard revenue / today's payments.
   void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 }
 
@@ -61,6 +69,46 @@ export function useDeletePayment(
       // treats the badge as earned and never takes it back — so the
       // customer refresh here is about the totals, not the flag.
       invalidateAffected(queryClient, customerId);
+    },
+  });
+}
+
+/**
+ * List-level variants for the standalone Payments page, where the affected
+ * customer differs per row rather than being fixed by the surrounding
+ * screen. They invalidate the whole payments and customers features (plus
+ * the dashboard) rather than one customer's keys.
+ */
+function invalidateAll(
+  queryClient: ReturnType<typeof useQueryClient>,
+): void {
+  void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+  void queryClient.invalidateQueries({ queryKey: customerKeys.all });
+  void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+}
+
+export function useRecordPayment(): UseMutationResult<
+  CreatePaymentResult,
+  ApiError,
+  CreatePaymentInput
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation<CreatePaymentResult, ApiError, CreatePaymentInput>({
+    mutationFn: (input) => paymentsApi.create(input),
+    onSuccess: () => {
+      invalidateAll(queryClient);
+    },
+  });
+}
+
+export function useRemovePayment(): UseMutationResult<void, ApiError, string> {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ApiError, string>({
+    mutationFn: (id) => paymentsApi.remove(id),
+    onSuccess: () => {
+      invalidateAll(queryClient);
     },
   });
 }

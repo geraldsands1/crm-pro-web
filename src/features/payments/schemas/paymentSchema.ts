@@ -53,6 +53,14 @@ export const paymentSchema = z.object({
     // Blank means "no note", which is NULL in the database — an empty
     // string would render as a present-but-empty note in the table.
     .transform((value) => (value === '' ? null : value)),
+
+  // Optional external reference / transaction number. Same blank-to-NULL
+  // treatment as `note`.
+  reference_no: z
+    .string()
+    .trim()
+    .max(100, 'Must be 100 characters or fewer.')
+    .transform((value) => (value === '' ? null : value)),
 });
 
 export type PaymentFormValues = z.input<typeof paymentSchema>;
@@ -72,6 +80,7 @@ export function emptyPaymentFormValues(): PaymentFormValues {
     method: DEFAULT_PAYMENT_METHOD,
     paid_at: toDateInputValue(new Date()),
     note: '',
+    reference_no: '',
   };
 }
 
@@ -100,5 +109,6 @@ export function toCreatePaymentInput(
     method: values.method,
     note: values.note,
     paid_at: paidAt.toISOString(),
+    reference_no: values.reference_no,
   };
 }

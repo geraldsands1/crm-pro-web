@@ -5,8 +5,11 @@ import type { ApiEnvelope } from '../../../lib/api/types';
 import type {
   CreatePaymentInput,
   CreatePaymentResult,
+  CustomerPaymentTotal,
   Payment,
   PaymentHistory,
+  PaymentListItem,
+  PaymentsList,
   PaymentSummary,
 } from '../types';
 
@@ -18,6 +21,27 @@ interface HistoryResponse extends ApiEnvelope {
     last_payment_at?: unknown;
   };
   data: Payment[];
+}
+
+interface ListResponse extends ApiEnvelope {
+  count: number;
+  totals?: unknown;
+  data: PaymentListItem[];
+}
+
+interface RawTotal {
+  customer_id?: unknown;
+  customer_name?: unknown;
+  total_paid?: unknown;
+  payment_count?: unknown;
+  last_payment_at?: unknown;
+}
+
+/** Optional filters the standalone Payments list sends to the server. */
+export interface PaymentListParams {
+  customerId?: string | null;
+  from?: string | null;
+  to?: string | null;
 }
 
 interface CreateResponse extends ApiEnvelope {
@@ -76,7 +100,60 @@ function parseSummary(
   };
 }
 
+function parseTotals(value: unknown): CustomerPaymentTotal[] {
+  if (!Array.isArray(value)) return [];
+
+  const totals: CustomerPaymentTotal[] = [];
+  for (const raw of value as RawTotal[]) {
+    const customerId =
+      typeof raw.customer_id === 'string' ? raw.customer_id : null;
+    const totalPaid = toAmount(raw.total_paid);
+    const paymentCount = toInteger(raw.payment_count);
+    if (customerId === null || totalPaid === null || paymentCount === null) {
+      continue;
+    }
+    totals.push({
+      customer_id: customerId,
+      customer_name:
+        typeof raw.customer_name === 'string' ? raw.customer_name : null,
+      total_paid: totalPaid,
+      payment_count: paymentCount,
+      last_payment_at:
+        typeof raw.last_payment_at === 'string' ? raw.last_payment_at : null,
+    });
+  }
+  return totals;
+}
+
 export const paymentsApi = {
+  /**
+   * `GET /payments[?from=&to=]` — the standalone Payments module.
+   *
+   * With no `customer_id`, the backend returns every payment in the
+   * caller's scope (an agent sees only their own book), each joined to its
+   * customer's name, plus a per-customer totals breakdown — both computed
+   * in SQL over the same optional date range. Customer selection and
+   * free-text search are applied in the client, so they are not sent here.
+   */
+  async list(params: PaymentListParams = {}): Promise<PaymentsList> {
+    const query: Record<string, string> = {};
+    if (params.customerId) query.customer_id = params.customerId;
+    if (params.from) query.from = params.from;
+    if (params.to) query.to = params.to;
+
+    const { data } = await apiClient.get<ListResponse>(
+      endpoints.payments.root,
+      { params: query },
+    );
+
+    ensureSuccess(data, 'Could not load payments.');
+
+    return {
+      payments: Array.isArray(data.data) ? data.data : [],
+      totals: parseTotals(data.totals),
+    };
+  },
+
   /**
    * `GET /payments?customer_id=<uuid>`.
    *

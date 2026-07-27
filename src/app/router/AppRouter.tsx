@@ -61,9 +61,9 @@ const AgentEditPage = lazy(() =>
     default: m.AgentEditPage,
   })),
 );
-const ModulePlaceholderPage = lazy(() =>
-  import('../../pages/ModulePlaceholderPage').then((m) => ({
-    default: m.ModulePlaceholderPage,
+const PaymentsListPage = lazy(() =>
+  import('../../features/payments/pages/PaymentsListPage').then((m) => ({
+    default: m.PaymentsListPage,
   })),
 );
 
@@ -74,7 +74,7 @@ const ModulePlaceholderPage = lazy(() =>
  *   └── ProtectedRoute         requires a session
  *       └── MainLayout         sidebar + top bar shell
  *           ├── /customers…    any signed-in role
- *           ├── /payments      placeholder (payments live on a customer)
+ *           ├── /payments      standalone payments module
  *           └── RoleRoute      admin only
  *               └── /agents…
  *
@@ -120,7 +120,7 @@ export function AppRouter() {
 
             <Route
               path={appRoutes.payments}
-              element={<ModulePlaceholderPage title="Payments" />}
+              element={<PaymentsListPage />}
             />
 
             {/* Admin-only in the router, matching the backend, where

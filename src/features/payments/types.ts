@@ -23,6 +23,39 @@ export interface Payment {
   created_at: string;
   /** Full name of the user who recorded it, joined server-side. */
   recorded_by: string | null;
+  /**
+   * Optional external reference / transaction number (cheque no., bank
+   * txn id, UPI ref, …). Free-form and nullable, like `method`/`note`.
+   */
+  reference_no: string | null;
+}
+
+/**
+ * A payment as the standalone Payments list returns it: every column of
+ * [Payment] plus the customer's name, joined server-side (`GET /payments`
+ * without a `customer_id`). The per-customer history omits `customer_name`
+ * because the customer is already known from the page it loads on.
+ */
+export interface PaymentListItem extends Payment {
+  customer_name: string | null;
+}
+
+/**
+ * "Total paid by each customer", computed in SQL over the same scope and
+ * date range as the list. Never summed from the rows on screen.
+ */
+export interface CustomerPaymentTotal {
+  customer_id: string;
+  customer_name: string | null;
+  total_paid: number;
+  payment_count: number;
+  last_payment_at: string | null;
+}
+
+/** `GET /api/payments[?from=&to=]` — the standalone Payments module. */
+export interface PaymentsList {
+  payments: PaymentListItem[];
+  totals: CustomerPaymentTotal[];
 }
 
 /**
@@ -56,6 +89,8 @@ export interface CreatePaymentInput {
   note: string | null;
   /** ISO-8601. Omitted server-side defaults to NOW(). */
   paid_at: string;
+  /** Optional external reference / transaction number. */
+  reference_no: string | null;
 }
 
 /**

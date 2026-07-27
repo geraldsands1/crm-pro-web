@@ -8,13 +8,11 @@
  * stored value being loaded back into a control.
  */
 export const PAYMENT_METHODS = [
-  'Card',
   'Cash',
-  'Check',
+  'Card',
   'Bank Transfer',
-  'Zelle',
-  'PayPal',
-  'Online',
+  'UPI',
+  'Other',
 ] as const;
 
 export const DEFAULT_PAYMENT_METHOD = PAYMENT_METHODS[0];
