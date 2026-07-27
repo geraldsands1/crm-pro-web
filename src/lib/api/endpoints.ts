@@ -29,6 +29,11 @@ export const endpoints = {
     root: '/agents',
     /** PUT and DELETE for one agent. Admin only. */
     byId: (id: string) => `/agents/${id}`,
+    /**
+     * GET commission stats for one agent (RC2.8). Admin any; an agent
+     * only their own — enforced server-side.
+     */
+    commission: (id: string) => `/agents/${id}/commission`,
   },
   payments: {
     /** GET (`?customer_id=`) and POST (record). There is no PUT route. */

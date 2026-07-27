@@ -17,8 +17,44 @@ export interface Agent {
   is_active: boolean;
   /** Null until the agent has signed in at least once. */
   last_login: string | null;
+  /** RC2.8: the agent's commission rate, 0–100. Editable by an admin. */
+  commission_percentage: number;
   created_at: string;
   updated_at: string | null;
+}
+
+/**
+ * `GET /api/agents/:id/commission` — RC2.8 commission statistics.
+ *
+ * An admin may request any agent; an agent may request only their own
+ * (enforced server-side from the JWT). Sales, commission and payment
+ * count are aggregated from the commission snapshot stored on each
+ * payment, so they reflect what was earned at the time, not a recompute
+ * from the current rate.
+ */
+/**
+ * One row of an agent's commission history — a payment they earned on,
+ * with the commission snapshot frozen at the time it was recorded.
+ */
+export interface CommissionHistoryRow {
+  id: string;
+  paid_at: string;
+  customer_name: string | null;
+  amount: number;
+  commission_rate: number | null;
+  commission_amount: number | null;
+}
+
+export interface AgentCommissionStats {
+  commission_percentage: number;
+  total_sales: number;
+  total_commission: number;
+  customer_count: number;
+  payments_received: number;
+  /** Count of the agent's payments dated today (server timezone). */
+  payments_today: number;
+  /** The agent's commission history, newest first. */
+  history: CommissionHistoryRow[];
 }
 
 /**
@@ -32,6 +68,8 @@ export interface CreateAgentInput {
   email: string;
   password: string;
   phone: string | null;
+  /** RC2.8: commission rate 0–100. */
+  commission_percentage: number;
 }
 
 /**
@@ -48,6 +86,8 @@ export interface UpdateAgentInput {
   is_active?: boolean;
   /** Only sent when the admin is actually setting a new password. */
   password?: string;
+  /** RC2.8: commission rate 0–100. */
+  commission_percentage?: number;
 }
 
 export type AgentSortField = 'name' | 'email' | 'status' | 'created';

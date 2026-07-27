@@ -13,9 +13,7 @@ import { appRoutes } from './routes';
  *
  * Every page below the login screen is lazily imported, so the initial
  * download is the shell plus whichever page was actually requested rather
- * than all nine at once. The effect is largest for the pages most people
- * never open: an agent never loads the admin-only agent screens, and
- * nobody loads the customer form until they open it.
+ * than all nine at once.
  *
  * `LoginPage` is deliberately NOT lazy. It is the first thing an
  * unauthenticated visitor sees, and splitting it would add a second round
@@ -79,15 +77,11 @@ const PaymentsListPage = lazy(() =>
  *               └── /agents…
  *
  * Because ProtectedRoute wraps a branch rather than each page, a page
- * added below it is protected by default — the safe direction to fail.
- * Anything unmatched lands on /dashboard, which then bounces to /login if
- * there is no session, so an unknown URL never leaves a blank screen.
+ * added below it is protected by default. Anything unmatched lands on
+ * /dashboard, which bounces to /login when there is no session.
  */
 export function AppRouter() {
   return (
-    // One Suspense boundary inside the layout, so the sidebar and top bar
-    // stay on screen while a page chunk loads instead of the whole app
-    // flashing to a spinner on every navigation.
     <Routes>
       <Route path={appRoutes.login} element={<LoginPage />} />
 

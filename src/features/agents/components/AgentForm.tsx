@@ -10,6 +10,7 @@ import {
   Checkbox,
   CircularProgress,
   FormControlLabel,
+  InputAdornment,
   Stack,
   TextField,
   Typography,
@@ -122,6 +123,25 @@ export function AgentForm({
                 fullWidth
                 error={Boolean(errors.phone)}
                 helperText={errors.phone?.message ?? ' '}
+                disabled={isSubmitting}
+              />
+
+              {/* RC2.8: the agent's commission rate, editable by an admin. */}
+              <TextField
+                {...register('commission_percentage')}
+                label="Commission %"
+                required
+                fullWidth
+                inputMode="decimal"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">%</InputAdornment>
+                    ),
+                  },
+                }}
+                error={Boolean(errors.commission_percentage)}
+                helperText={errors.commission_percentage?.message ?? '0–100'}
                 disabled={isSubmitting}
               />
 

@@ -5,6 +5,7 @@ import { ApiError } from '../../../lib/api/types';
 import { paymentsApi } from '../api/paymentsApi';
 import { paymentKeys } from '../api/paymentKeys';
 import { customerKeys } from '../../customers/api/customerKeys';
+import { agentKeys } from '../../agents/api/agentKeys';
 import type { CreatePaymentInput, CreatePaymentResult } from '../types';
 
 /**
@@ -42,6 +43,9 @@ function invalidateAffected(
   void queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
   // Dashboard revenue / today's payments.
   void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+  // RC2.8: agent commission stats + history (Agent Edit page + the agent's
+  // own Dashboard) — a payment changes the assigned agent's totals.
+  void queryClient.invalidateQueries({ queryKey: agentKeys.commissions() });
 }
 
 export function useCreatePayment(
@@ -85,6 +89,8 @@ function invalidateAll(
   void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
   void queryClient.invalidateQueries({ queryKey: customerKeys.all });
   void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+  // RC2.8: agent commission stats + history.
+  void queryClient.invalidateQueries({ queryKey: agentKeys.commissions() });
 }
 
 export function useRecordPayment(): UseMutationResult<

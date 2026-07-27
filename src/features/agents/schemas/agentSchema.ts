@@ -45,6 +45,22 @@ export const agentSchema = z
     phone: optionalText(40),
     password: z.string(),
     is_active: z.boolean(),
+    // RC2.8: commission rate. Held as text in the form (like the payment
+    // amount) so the two-decimal rule is checked on the typed value, then
+    // parsed to a number and range-checked.
+    commission_percentage: z
+      .string()
+      .trim()
+      .min(1, 'Commission % is required.')
+      .refine(
+        (value) => /^\d+(\.\d{1,2})?$/.test(value),
+        'Enter a percentage with at most two decimals.',
+      )
+      .transform((value) => Number(value))
+      .refine(
+        (value) => value >= 0 && value <= 100,
+        'Must be between 0 and 100.',
+      ),
     /** Not sent anywhere — drives the conditional rules below. */
     mode: z.union([z.literal('create'), z.literal('edit')]),
   })
@@ -82,6 +98,7 @@ export function emptyAgentFormValues(): AgentFormValues {
     phone: '',
     password: '',
     is_active: true,
+    commission_percentage: '0',
     mode: 'create',
   };
 }
@@ -98,6 +115,7 @@ export function agentToFormValues(agent: Agent): AgentFormValues {
     phone: agent.phone ?? '',
     password: '',
     is_active: agent.is_active,
+    commission_percentage: String(agent.commission_percentage),
     mode: 'edit',
   };
 }
@@ -108,6 +126,7 @@ export function toCreateAgentInput(values: AgentFormOutput): CreateAgentInput {
     email: values.email,
     password: values.password,
     phone: values.phone,
+    commission_percentage: values.commission_percentage,
   };
 }
 
@@ -123,6 +142,7 @@ export function toUpdateAgentInput(values: AgentFormOutput): UpdateAgentInput {
     full_name: values.full_name,
     phone: values.phone,
     is_active: values.is_active,
+    commission_percentage: values.commission_percentage,
   };
 
   if (values.password.length > 0) {

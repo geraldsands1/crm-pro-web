@@ -2,7 +2,12 @@ import { apiClient } from '../../../lib/api/client';
 import { endpoints } from '../../../lib/api/endpoints';
 import { ensureSuccess } from '../../../lib/api/envelope';
 import type { ApiDataResponse, ApiEnvelope } from '../../../lib/api/types';
-import type { Agent, CreateAgentInput, UpdateAgentInput } from '../types';
+import type {
+  Agent,
+  AgentCommissionStats,
+  CreateAgentInput,
+  UpdateAgentInput,
+} from '../types';
 
 export const agentsApi = {
   /**
@@ -67,5 +72,21 @@ export const agentsApi = {
     );
 
     ensureSuccess(data, 'Could not delete this agent.');
+  },
+
+  /**
+   * `GET /agents/:id/commission` — RC2.8 commission statistics.
+   *
+   * An admin may request any agent; an agent only their own (a 403
+   * otherwise, surfaced as an `ApiError` of kind `forbidden`). The
+   * figures are computed server-side in SQL.
+   */
+  async getCommission(id: string): Promise<AgentCommissionStats> {
+    const { data } = await apiClient.get<ApiDataResponse<AgentCommissionStats>>(
+      endpoints.agents.commission(id),
+    );
+
+    ensureSuccess(data, 'Could not load commission statistics.');
+    return data.data;
   },
 };
