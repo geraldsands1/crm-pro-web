@@ -1,5 +1,6 @@
 import { Autocomplete, TextField } from '@mui/material';
 
+import { useAuth } from '../../auth/hooks/useAuth';
 import { useAgents } from '../../agents/hooks/useAgents';
 import type { Agent } from '../../agents/types';
 
@@ -14,6 +15,10 @@ interface AssignedAgentFieldProps {
    * guaranteed to be rejected.
    */
   canLoadAgents: boolean;
+  /** RC2.8.2: mark the picker required (admins must assign an agent). */
+  required?: boolean;
+  /** RC2.8.2: validation message from the form, shown under the field. */
+  errorMessage?: string | null;
 }
 
 /**
@@ -35,17 +40,24 @@ export function AssignedAgentField({
   onChange,
   disabled = false,
   canLoadAgents,
+  required = false,
+  errorMessage = null,
 }: AssignedAgentFieldProps) {
+  const { user } = useAuth();
   const { data, isPending, isError } = useAgents({ enabled: canLoadAgents });
 
+  // BUG 1 fix (RC2.8.2): an agent cannot load the agent list, and the
+  // backend assigns the customer to them automatically. Rather than a
+  // blank, disabled box, show who will own it — themselves — so the
+  // ownership is explicit.
   if (!canLoadAgents) {
     return (
       <TextField
         label="Assigned agent"
-        value=""
+        value={user?.full_name ?? 'You'}
         fullWidth
         disabled
-        helperText="Only an administrator can change the assigned agent."
+        helperText="Automatically assigned to you."
       />
     );
   }
@@ -81,12 +93,16 @@ export function AssignedAgentField({
         <TextField
           {...params}
           label="Assigned agent"
+          required={required}
           helperText={
-            isError
+            errorMessage ??
+            (isError
               ? 'Agents could not be loaded. The current assignment is unchanged.'
-              : 'Leave empty to leave this customer unassigned.'
+              : required
+                ? 'Every customer must have an assigned agent.'
+                : 'Leave empty to leave this customer unassigned.')
           }
-          error={isError}
+          error={isError || Boolean(errorMessage)}
         />
       )}
     />

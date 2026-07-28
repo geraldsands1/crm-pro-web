@@ -69,6 +69,30 @@ export const customerSchema = z.object({
 });
 
 /**
+ * RC2.8.2 — every customer must have an assigned agent, but only an admin
+ * can pick one (`GET /agents` is admin-only, so the picker is disabled for
+ * agents, whom the backend auto-assigns to themselves). The requirement is
+ * therefore gated on [requireAgent] — true for admins. The field's type is
+ * unchanged, so `CustomerFormValues`/`CustomerFormOutput` still derive from
+ * `customerSchema` above; this only adds a refinement.
+ */
+export function makeCustomerSchema(requireAgent: boolean) {
+  return customerSchema.superRefine((values, ctx) => {
+    if (
+      requireAgent &&
+      (values.assigned_agent_id === null ||
+        values.assigned_agent_id.trim() === '')
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['assigned_agent_id'],
+        message: 'Assigned agent is required.',
+      });
+    }
+  });
+}
+
+/**
  * The values React Hook Form holds — every field a string, since that is
  * what the inputs bind to. Distinct from the parsed output, where the
  * optional fields have become `string | null`.

@@ -18,7 +18,7 @@ import {
 import { useAuth } from '../../auth/hooks/useAuth';
 import { AssignedAgentField } from './AssignedAgentField';
 import { CUSTOMER_STATUSES } from '../constants';
-import { customerSchema } from '../schemas/customerSchema';
+import { makeCustomerSchema } from '../schemas/customerSchema';
 import type {
   CustomerFormOutput,
   CustomerFormValues,
@@ -58,13 +58,21 @@ export function CustomerForm({
   const { user } = useAuth();
   const canAssignAgent = user?.role === 'admin';
 
+  // RC2.8.2: the assigned agent is required only when the user can pick one
+  // (admins). Agents get it auto-assigned server-side, so their form never
+  // blocks on it.
+  const schema = useMemo(
+    () => makeCustomerSchema(canAssignAgent),
+    [canAssignAgent],
+  );
+
   const {
     register,
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CustomerFormValues, unknown, CustomerFormOutput>({
-    resolver: zodResolver(customerSchema) as Resolver<
+    resolver: zodResolver(schema) as Resolver<
       CustomerFormValues,
       unknown,
       CustomerFormOutput
@@ -195,6 +203,8 @@ export function CustomerForm({
                     onChange={field.onChange}
                     disabled={isSubmitting}
                     canLoadAgents={canAssignAgent}
+                    required={canAssignAgent}
+                    errorMessage={errors.assigned_agent_id?.message ?? null}
                   />
                 )}
               />
