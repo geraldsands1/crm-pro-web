@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 
 import { useAuth } from '../../auth/hooks/useAuth';
+import { ApiError } from '../../../lib/api/types';
 import { AssignedAgentField } from './AssignedAgentField';
 import { CUSTOMER_STATUSES } from '../constants';
 import { makeCustomerSchema } from '../schemas/customerSchema';
@@ -24,13 +25,28 @@ import type {
   CustomerFormValues,
 } from '../schemas/customerSchema';
 
+/**
+ * RC3.2: fields the backend may name in a 409 duplicate response. A server
+ * error tagged with one of these is shown inline on that input; any other
+ * server error falls back to the banner above the actions.
+ */
+function isMappableField(
+  field: string | undefined,
+): field is 'email' | 'phone' {
+  return field === 'email' || field === 'phone';
+}
+
 interface CustomerFormProps {
   defaultValues: CustomerFormValues;
   onSubmit: (values: CustomerFormOutput) => Promise<void>;
   onCancel: () => void;
   submitLabel: string;
-  /** Server-side failure, shown above the actions. */
-  submitError?: string | null;
+  /**
+   * RC3.2: the last submit's server-side failure, or null. A 409 that names a
+   * field (duplicate email/phone) is highlighted inline on that input; any
+   * other error is shown as a banner above the actions.
+   */
+  serverError?: ApiError | null;
 }
 
 /**
@@ -51,7 +67,7 @@ export function CustomerForm({
   onSubmit,
   onCancel,
   submitLabel,
-  submitError,
+  serverError = null,
 }: CustomerFormProps) {
   // `GET /agents` is admin-only server-side, so only an admin can be
   // offered the picker — see AssignedAgentField for what an agent sees.
@@ -70,6 +86,7 @@ export function CustomerForm({
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CustomerFormValues, unknown, CustomerFormOutput>({
     resolver: zodResolver(schema) as Resolver<
@@ -79,6 +96,28 @@ export function CustomerForm({
     >,
     defaultValues,
   });
+
+  // RC3.2: surface a field-specific server error (duplicate email/phone) on
+  // the input itself. Keyed on the error INSTANCE, so a repeated identical
+  // duplicate re-highlights the field even though the resolver clears manual
+  // errors at the start of each resubmit. `shouldFocus` moves the cursor to
+  // the offending input. Non-field errors are handled by the banner below.
+  useEffect(() => {
+    if (serverError && isMappableField(serverError.field)) {
+      setError(
+        serverError.field,
+        { type: 'server', message: serverError.message },
+        { shouldFocus: true },
+      );
+    }
+  }, [serverError, setError]);
+
+  // The banner shows every server error EXCEPT the ones already shown inline,
+  // so a duplicate email is never reported twice.
+  const bannerError =
+    serverError && !isMappableField(serverError.field)
+      ? serverError.message
+      : null;
 
   /**
    * The status column is free-form TEXT server-side, so an existing
@@ -310,7 +349,7 @@ export function CustomerForm({
           </CardContent>
         </Card>
 
-        {submitError ? <Alert severity="error">{submitError}</Alert> : null}
+        {bannerError ? <Alert severity="error">{bannerError}</Alert> : null}
 
         <Stack
           direction="row"

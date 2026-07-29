@@ -89,6 +89,25 @@ function messageFromResponse(error: AxiosError, fallback: string): string {
   return fallback;
 }
 
+/**
+ * RC3.2: the field a validation error belongs to, if the backend named one
+ * (e.g. a 409 duplicate sends `{ field: "email" }`). Returned undefined when
+ * absent, so a form only highlights an input when the server actually
+ * identified it.
+ */
+function fieldFromResponse(error: AxiosError): string | undefined {
+  const data = error.response?.data;
+
+  if (typeof data === 'object' && data !== null) {
+    const field = (data as Record<string, unknown>)['field'];
+    if (typeof field === 'string' && field.trim().length > 0) {
+      return field;
+    }
+  }
+
+  return undefined;
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
@@ -173,6 +192,9 @@ apiClient.interceptors.response.use(
         ),
         kind,
         status,
+        // Carries the offending field for 4xx validation errors (e.g. a 409
+        // duplicate email/phone) so a form can highlight it inline.
+        fieldFromResponse(error),
       ),
     );
   },

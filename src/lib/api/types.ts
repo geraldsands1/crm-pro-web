@@ -25,12 +25,25 @@ export interface ApiDataResponse<T> extends ApiEnvelope {
 export class ApiError extends Error {
   readonly status: number | undefined;
   readonly kind: ApiErrorKind;
+  /**
+   * RC3.2: the specific input a validation failure belongs to, when the
+   * backend names one (e.g. a 409 duplicate reports `field: "email"`). Lets
+   * a form highlight that input inline instead of only showing a banner.
+   * Undefined for errors that are not tied to a single field.
+   */
+  readonly field: string | undefined;
 
-  constructor(message: string, kind: ApiErrorKind, status?: number) {
+  constructor(
+    message: string,
+    kind: ApiErrorKind,
+    status?: number,
+    field?: string,
+  ) {
     super(message);
     this.name = 'ApiError';
     this.kind = kind;
     this.status = status;
+    this.field = field;
   }
 }
 

@@ -54,7 +54,7 @@ export function CustomerCreatePage() {
         onSubmit={handleSubmit}
         onCancel={backToList}
         submitLabel="Create Customer"
-        submitError={createMutation.error?.message ?? null}
+        serverError={createMutation.error ?? null}
       />
     </Stack>
   );

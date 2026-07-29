@@ -99,7 +99,7 @@ export function CustomerEditPage() {
         onSubmit={handleSubmit}
         onCancel={backToDetails}
         submitLabel="Save Changes"
-        submitError={updateMutation.error?.message ?? null}
+        serverError={updateMutation.error ?? null}
       />
     </Stack>
   );
