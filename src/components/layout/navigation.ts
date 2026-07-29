@@ -1,6 +1,7 @@
 import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined';
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined';
 import PaymentsIcon from '@mui/icons-material/PaymentsOutlined';
+import CommissionIcon from '@mui/icons-material/PaidOutlined';
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -17,6 +18,12 @@ export interface NavItem {
    * controls visibility, the router controls access.
    */
   roles?: readonly UserRole[];
+  /**
+   * Per-role label overrides. The default `label` is used unless the
+   * signed-in role has an entry here — e.g. an agent sees "My Commission"
+   * where an admin sees "Commission".
+   */
+  labelByRole?: Partial<Record<UserRole, string>>;
 }
 
 /**
@@ -41,6 +48,15 @@ export const navItems: readonly NavItem[] = [
     icon: PaymentsIcon,
   },
   {
+    // No `roles`: visible to admin and agent. The backend scopes the data and
+    // enforces admin-only payout. Agents see "My Commission" for clarity,
+    // since their view is only ever their own.
+    label: 'Commission',
+    path: appRoutes.commission,
+    icon: CommissionIcon,
+    labelByRole: { agent: 'My Commission' },
+  },
+  {
     label: 'Agents',
     path: appRoutes.agents,
     icon: BadgeIcon,
@@ -49,7 +65,14 @@ export const navItems: readonly NavItem[] = [
 ];
 
 export function visibleNavItems(role: UserRole | undefined): NavItem[] {
-  return navItems.filter(
-    (item) => !item.roles || (role !== undefined && item.roles.includes(role)),
-  );
+  return navItems
+    .filter(
+      (item) =>
+        !item.roles || (role !== undefined && item.roles.includes(role)),
+    )
+    .map((item) => {
+      const override = role !== undefined ? item.labelByRole?.[role] : undefined;
+      return override ? { ...item, label: override } : item;
+    });
 }
+

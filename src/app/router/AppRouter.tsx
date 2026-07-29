@@ -64,6 +64,11 @@ const PaymentsListPage = lazy(() =>
     default: m.PaymentsListPage,
   })),
 );
+const CommissionPage = lazy(() =>
+  import('../../features/commission/pages/CommissionPage').then((m) => ({
+    default: m.CommissionPage,
+  })),
+);
 
 /**
  * The route tree.
@@ -115,6 +120,14 @@ export function AppRouter() {
             <Route
               path={appRoutes.payments}
               element={<PaymentsListPage />}
+            />
+
+            {/* Commission — any signed-in role. The backend scopes the data
+                (an agent sees only their own) and enforces admin-only payout,
+                so no RoleRoute guard is needed here. */}
+            <Route
+              path={appRoutes.commission}
+              element={<CommissionPage />}
             />
 
             {/* Admin-only in the router, matching the backend, where

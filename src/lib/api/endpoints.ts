@@ -41,4 +41,12 @@ export const endpoints = {
     /** DELETE only. Admin only, server-enforced. */
     byId: (id: string) => `/payments/${id}`,
   },
+  commissionLedger: {
+    /** GET — ledger entries, scoped by JWT role (agent: own; admin: all). */
+    root: '/commission-ledger',
+    /** GET — aggregate figures (pending/paid/total/this + last month). */
+    summary: '/commission-ledger/summary',
+    /** PATCH — mark one entry Paid. Admin only, server-enforced. */
+    pay: (id: string) => `/commission-ledger/${id}/pay`,
+  },
 } as const;
