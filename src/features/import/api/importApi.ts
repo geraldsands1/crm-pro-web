@@ -113,13 +113,21 @@ export const importApi = {
   /** Upload a .xlsx/.csv file (multipart) and return the new importId. */
   async upload(file: File): Promise<{ importId: string }> {
     const form = new FormData();
-    form.append('file', file);
+    // Field name MUST be exactly "file" (multer.single("file")); include the
+    // filename so the multipart part carries it.
+    form.append('file', file, file.name);
 
-    // axios v1 detects the FormData and sets the multipart boundary itself,
-    // overriding the client's default JSON content-type.
+    // The shared apiClient defaults Content-Type to application/json. axios's
+    // transformRequest sees that JSON header and serialises the FormData to
+    // JSON — so the server received no file at all. Overriding the header for
+    // this one request stops that conversion; the browser then sends real
+    // multipart/form-data and fills in the boundary itself. The auth
+    // interceptor still runs, so the JWT is attached. No other request is
+    // affected.
     const { data } = await apiClient.post<UploadResponse>(
       endpoints.imports.upload,
       form,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
     );
     ensureSuccess(data, 'The file could not be uploaded.');
     return { importId: String(data.importId) };
