@@ -27,3 +27,20 @@ export interface DashboardStatsResponse {
   todayPayments?: unknown;
   totalVipCustomers?: unknown;
 }
+
+/**
+ * `GET /api/dashboard/sales-summary` — total, today's and this month's sales
+ * over ALL payments (CRM + IMPORTED). Currency amounts, coerced to numbers.
+ */
+export interface SalesSummary {
+  totalSales: number;
+  todaySales: number;
+  thisMonthSales: number;
+}
+
+/** The raw sales-summary payload, before coercion. */
+export interface SalesSummaryResponse {
+  totalSales?: unknown;
+  todaySales?: unknown;
+  thisMonthSales?: unknown;
+}

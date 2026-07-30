@@ -2,7 +2,12 @@ import { apiClient } from '../../../lib/api/client';
 import { endpoints } from '../../../lib/api/endpoints';
 import { ApiError } from '../../../lib/api/types';
 import type { ApiDataResponse } from '../../../lib/api/types';
-import type { DashboardStats, DashboardStatsResponse } from '../types';
+import type {
+  DashboardStats,
+  DashboardStatsResponse,
+  SalesSummary,
+  SalesSummaryResponse,
+} from '../types';
 
 /**
  * Coerces a value from the dashboard payload to a number.
@@ -55,6 +60,30 @@ export const dashboardApi = {
       totalRevenue: toNumber(stats.totalRevenue),
       todayPayments: toNumber(stats.todayPayments),
       totalVipCustomers: toNumber(stats.totalVipCustomers),
+    };
+  },
+
+  /**
+   * `GET /dashboard/sales-summary` — admin only. Total, today's and this
+   * month's sales over ALL payments (CRM + IMPORTED). Amounts are coerced to
+   * numbers for the same NUMERIC-as-string reason as the stats above.
+   */
+  async getSalesSummary(): Promise<SalesSummary> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<SalesSummaryResponse>
+    >(endpoints.dashboard.salesSummary);
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load the sales summary.',
+        'server',
+      );
+    }
+
+    return {
+      totalSales: toNumber(data.data.totalSales),
+      todaySales: toNumber(data.data.todaySales),
+      thisMonthSales: toNumber(data.data.thisMonthSales),
     };
   },
 };

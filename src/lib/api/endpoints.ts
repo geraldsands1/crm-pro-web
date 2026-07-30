@@ -15,6 +15,8 @@ export const endpoints = {
   dashboard: {
     /** GET — aggregate statistics, scoped server-side by JWT role. */
     stats: '/dashboard',
+    /** GET — total / today / this-month sales (all payments). Admin only. */
+    salesSummary: '/dashboard/sales-summary',
   },
   customers: {
     /** GET (all, unpaginated) and POST (create). */
