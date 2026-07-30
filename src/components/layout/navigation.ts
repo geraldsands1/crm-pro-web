@@ -2,6 +2,7 @@ import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined';
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined';
 import PaymentsIcon from '@mui/icons-material/PaymentsOutlined';
 import CommissionIcon from '@mui/icons-material/PaidOutlined';
+import ImportIcon from '@mui/icons-material/UploadFileOutlined';
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -60,6 +61,12 @@ export const navItems: readonly NavItem[] = [
     label: 'Agents',
     path: appRoutes.agents,
     icon: BadgeIcon,
+    roles: ['admin'],
+  },
+  {
+    label: 'Import Data',
+    path: appRoutes.importData,
+    icon: ImportIcon,
     roles: ['admin'],
   },
 ];

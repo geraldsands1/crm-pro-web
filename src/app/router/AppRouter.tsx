@@ -69,6 +69,11 @@ const CommissionPage = lazy(() =>
     default: m.CommissionPage,
   })),
 );
+const ImportWizardPage = lazy(() =>
+  import('../../features/import/pages/ImportWizardPage').then((m) => ({
+    default: m.ImportWizardPage,
+  })),
+);
 
 /**
  * The route tree.
@@ -136,6 +141,13 @@ export function AppRouter() {
               <Route path={appRoutes.agents} element={<AgentListPage />} />
               <Route path={appRoutes.agentNew} element={<AgentCreatePage />} />
               <Route path={appRoutes.agentEdit} element={<AgentEditPage />} />
+
+              {/* Import Wizard — admin only, matching the backend's
+                  authorize("admin") on every /api/imports route. */}
+              <Route
+                path={appRoutes.importData}
+                element={<ImportWizardPage />}
+              />
             </Route>
           </Route>
         </Route>

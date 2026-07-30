@@ -49,4 +49,16 @@ export const endpoints = {
     /** PATCH — mark one entry Paid. Admin only, server-enforced. */
     pay: (id: string) => `/commission-ledger/${id}/pay`,
   },
+  imports: {
+    /** GET — download the .xlsx import template. Admin only. */
+    template: '/imports/template',
+    /** POST (multipart) — upload + parse + stage; returns importId + summary. */
+    upload: '/imports/upload',
+    /** GET — preview counts + row-level errors for a staged import. */
+    preview: (id: string) => `/imports/${id}/preview`,
+    /** POST — commit the import with a chosen action. */
+    commit: (id: string) => `/imports/${id}/commit`,
+    /** GET — download the CSV error report for an import. */
+    errors: (id: string) => `/imports/${id}/errors`,
+  },
 } as const;
