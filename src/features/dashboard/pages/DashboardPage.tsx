@@ -6,13 +6,19 @@ import TodayIcon from '@mui/icons-material/TodayOutlined';
 import StarIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 import PaidIcon from '@mui/icons-material/PaidOutlined';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonthOutlined';
+import GroupAddIcon from '@mui/icons-material/GroupAddOutlined';
+import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 
 import { ErrorState } from '../../../components/feedback/ErrorState';
 import { LoadingState } from '../../../components/feedback/LoadingState';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { formatCurrency, formatNumber } from '../../../lib/format';
 import { StatCard } from '../components/StatCard';
-import { useDashboardStats, useSalesSummary } from '../hooks/useDashboardStats';
+import {
+  useDashboardStats,
+  useSalesSummary,
+  useBusinessSnapshot,
+} from '../hooks/useDashboardStats';
 import { AgentCommissionCards } from '../../agents/components/AgentCommissionCards';
 import { CommissionHistoryTable } from '../../agents/components/CommissionHistoryTable';
 import { PendingPayoutCards } from '../../agents/components/PendingPayoutCards';
@@ -23,9 +29,10 @@ export function DashboardPage() {
   const isAdmin = user?.role === 'admin';
   const { data, isPending, isError, error, refetch } = useDashboardStats();
 
-  // Sales summary is an admin-only endpoint; `enabled` keeps an agent session
-  // from firing a request that would 403.
+  // Sales summary and business snapshot are admin-only endpoints; `enabled`
+  // keeps an agent session from firing requests that would 403.
   const salesQuery = useSalesSummary(isAdmin);
+  const snapshotQuery = useBusinessSnapshot(isAdmin);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -155,6 +162,59 @@ export function DashboardPage() {
                 value={formatCurrency(salesQuery.data.thisMonthSales)}
                 icon={CalendarMonthIcon}
                 tone="primary"
+              />
+            </Box>
+          ) : null}
+        </Box>
+      ) : null}
+
+      {/* Business snapshot (admin only) — total customers, new this month,
+          active agents. Counts only; no payments/commission. */}
+      {isAdmin ? (
+        <Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+            Business Snapshot
+          </Typography>
+
+          {snapshotQuery.isPending ? (
+            <LoadingState />
+          ) : snapshotQuery.isError ? (
+            <ErrorState
+              title="Could not load business snapshot"
+              message={snapshotQuery.error.message}
+              onRetry={() => {
+                void snapshotQuery.refetch();
+              }}
+            />
+          ) : snapshotQuery.data ? (
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 2,
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  lg: 'repeat(3, minmax(0, 1fr))',
+                },
+              }}
+            >
+              <StatCard
+                label="Total Customers"
+                value={formatNumber(snapshotQuery.data.totalCustomers)}
+                icon={PeopleIcon}
+                tone="primary"
+              />
+              <StatCard
+                label="New Customers This Month"
+                value={formatNumber(snapshotQuery.data.newCustomersThisMonth)}
+                icon={GroupAddIcon}
+                tone="secondary"
+              />
+              <StatCard
+                label="Active Agents"
+                value={formatNumber(snapshotQuery.data.activeAgents)}
+                icon={BadgeIcon}
+                tone="success"
               />
             </Box>
           ) : null}

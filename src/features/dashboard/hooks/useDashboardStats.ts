@@ -3,13 +3,15 @@ import type { UseQueryResult } from '@tanstack/react-query';
 
 import { ApiError } from '../../../lib/api/types';
 import { dashboardApi } from '../api/dashboardApi';
-import type { DashboardStats, SalesSummary } from '../types';
+import type { BusinessSnapshot, DashboardStats, SalesSummary } from '../types';
 
 /** Namespaced so future dashboard queries can be invalidated together. */
 export const dashboardQueryKeys = {
   all: ['dashboard'] as const,
   stats: () => [...dashboardQueryKeys.all, 'stats'] as const,
   salesSummary: () => [...dashboardQueryKeys.all, 'sales-summary'] as const,
+  businessSnapshot: () =>
+    [...dashboardQueryKeys.all, 'business-snapshot'] as const,
 };
 
 /**
@@ -34,6 +36,20 @@ export function useSalesSummary(
   return useQuery<SalesSummary, ApiError>({
     queryKey: dashboardQueryKeys.salesSummary(),
     queryFn: () => dashboardApi.getSalesSummary(),
+    enabled,
+  });
+}
+
+/**
+ * Loads the business snapshot (admin only). `enabled` keeps an agent — for
+ * whom the endpoint returns 403 — from firing the request.
+ */
+export function useBusinessSnapshot(
+  enabled: boolean,
+): UseQueryResult<BusinessSnapshot, ApiError> {
+  return useQuery<BusinessSnapshot, ApiError>({
+    queryKey: dashboardQueryKeys.businessSnapshot(),
+    queryFn: () => dashboardApi.getBusinessSnapshot(),
     enabled,
   });
 }

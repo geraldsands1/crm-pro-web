@@ -44,3 +44,20 @@ export interface SalesSummaryResponse {
   todaySales?: unknown;
   thisMonthSales?: unknown;
 }
+
+/**
+ * `GET /api/dashboard/business-snapshot` — total customers, new customers this
+ * month, and active agents. Plain counts.
+ */
+export interface BusinessSnapshot {
+  totalCustomers: number;
+  newCustomersThisMonth: number;
+  activeAgents: number;
+}
+
+/** The raw business-snapshot payload, before coercion. */
+export interface BusinessSnapshotResponse {
+  totalCustomers?: unknown;
+  newCustomersThisMonth?: unknown;
+  activeAgents?: unknown;
+}

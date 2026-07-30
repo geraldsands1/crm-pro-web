@@ -3,6 +3,8 @@ import { endpoints } from '../../../lib/api/endpoints';
 import { ApiError } from '../../../lib/api/types';
 import type { ApiDataResponse } from '../../../lib/api/types';
 import type {
+  BusinessSnapshot,
+  BusinessSnapshotResponse,
   DashboardStats,
   DashboardStatsResponse,
   SalesSummary,
@@ -84,6 +86,29 @@ export const dashboardApi = {
       totalSales: toNumber(data.data.totalSales),
       todaySales: toNumber(data.data.todaySales),
       thisMonthSales: toNumber(data.data.thisMonthSales),
+    };
+  },
+
+  /**
+   * `GET /dashboard/business-snapshot` — admin only. Total customers, new
+   * customers this month, and active agents. Coerced to numbers for safety.
+   */
+  async getBusinessSnapshot(): Promise<BusinessSnapshot> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<BusinessSnapshotResponse>
+    >(endpoints.dashboard.businessSnapshot);
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load the business snapshot.',
+        'server',
+      );
+    }
+
+    return {
+      totalCustomers: toNumber(data.data.totalCustomers),
+      newCustomersThisMonth: toNumber(data.data.newCustomersThisMonth),
+      activeAgents: toNumber(data.data.activeAgents),
     };
   },
 };

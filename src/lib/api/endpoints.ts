@@ -17,6 +17,8 @@ export const endpoints = {
     stats: '/dashboard',
     /** GET — total / today / this-month sales (all payments). Admin only. */
     salesSummary: '/dashboard/sales-summary',
+    /** GET — total customers, new this month, active agents. Admin only. */
+    businessSnapshot: '/dashboard/business-snapshot',
   },
   customers: {
     /** GET (all, unpaginated) and POST (create). */
