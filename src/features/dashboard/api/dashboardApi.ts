@@ -7,6 +7,9 @@ import type {
   BusinessSnapshotResponse,
   DashboardStats,
   DashboardStatsResponse,
+  RecentActivity,
+  RecentCustomer,
+  RecentPayment,
   SalesSummary,
   SalesSummaryResponse,
 } from '../types';
@@ -111,4 +114,72 @@ export const dashboardApi = {
       activeAgents: toNumber(data.data.activeAgents),
     };
   },
+
+  /**
+   * `GET /dashboard/recent-activity` — admin only. Latest 10 payments (CRM +
+   * IMPORTED) and latest 10 customers, parsed defensively.
+   */
+  async getRecentActivity(): Promise<RecentActivity> {
+    const { data } = await apiClient.get<ApiDataResponse<RecentActivityRaw>>(
+      endpoints.dashboard.recentActivity,
+    );
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load recent activity.',
+        'server',
+      );
+    }
+
+    const payments = Array.isArray(data.data.recentPayments)
+      ? data.data.recentPayments
+      : [];
+    const customers = Array.isArray(data.data.recentCustomers)
+      ? data.data.recentCustomers
+      : [];
+
+    return {
+      recentPayments: payments.map(parseRecentPayment),
+      recentCustomers: customers.map(parseRecentCustomer),
+    };
+  },
 };
+
+interface RecentActivityRaw {
+  recentPayments?: unknown[];
+  recentCustomers?: unknown[];
+}
+
+function str(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function nullableStr(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function parseRecentPayment(raw: unknown): RecentPayment {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    id: str(r.id),
+    customerId: str(r.customerId),
+    customerName: str(r.customerName) || 'Unknown',
+    amount: toNumber(r.amount),
+    method: nullableStr(r.method),
+    source: str(r.source),
+    paidAt: str(r.paidAt),
+    createdAt: str(r.createdAt),
+  };
+}
+
+function parseRecentCustomer(raw: unknown): RecentCustomer {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    id: str(r.id),
+    customerName: str(r.customerName) || 'Unknown',
+    phone: nullableStr(r.phone),
+    email: nullableStr(r.email),
+    status: str(r.status),
+    createdAt: str(r.createdAt),
+  };
+}

@@ -61,3 +61,31 @@ export interface BusinessSnapshotResponse {
   newCustomersThisMonth?: unknown;
   activeAgents?: unknown;
 }
+
+/** One row in the Recent Payments table. Includes CRM vs IMPORTED source. */
+export interface RecentPayment {
+  id: string;
+  customerId: string;
+  customerName: string;
+  amount: number;
+  method: string | null;
+  source: string;
+  paidAt: string;
+  createdAt: string;
+}
+
+/** One row in the Recently Added Customers table. */
+export interface RecentCustomer {
+  id: string;
+  customerName: string;
+  phone: string | null;
+  email: string | null;
+  status: string;
+  createdAt: string;
+}
+
+/** `GET /api/dashboard/recent-activity`. */
+export interface RecentActivity {
+  recentPayments: RecentPayment[];
+  recentCustomers: RecentCustomer[];
+}

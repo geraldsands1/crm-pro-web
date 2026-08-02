@@ -14,10 +14,13 @@ import { LoadingState } from '../../../components/feedback/LoadingState';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { formatCurrency, formatNumber } from '../../../lib/format';
 import { StatCard } from '../components/StatCard';
+import { RecentPaymentsTable } from '../components/RecentPaymentsTable';
+import { RecentCustomersTable } from '../components/RecentCustomersTable';
 import {
   useDashboardStats,
   useSalesSummary,
   useBusinessSnapshot,
+  useRecentActivity,
 } from '../hooks/useDashboardStats';
 import { AgentCommissionCards } from '../../agents/components/AgentCommissionCards';
 import { CommissionHistoryTable } from '../../agents/components/CommissionHistoryTable';
@@ -33,6 +36,7 @@ export function DashboardPage() {
   // keeps an agent session from firing requests that would 403.
   const salesQuery = useSalesSummary(isAdmin);
   const snapshotQuery = useBusinessSnapshot(isAdmin);
+  const activityQuery = useRecentActivity(isAdmin);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -217,6 +221,53 @@ export function DashboardPage() {
                 tone="success"
               />
             </Box>
+          ) : null}
+        </Box>
+      ) : null}
+
+      {/* Recent activity (admin only) — latest payments (CRM + IMPORTED) and
+          latest customers. Read-only. */}
+      {isAdmin ? (
+        <Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+            Recent Activity
+          </Typography>
+
+          {activityQuery.isPending ? (
+            <LoadingState />
+          ) : activityQuery.isError ? (
+            <ErrorState
+              title="Could not load recent activity"
+              message={activityQuery.error.message}
+              onRetry={() => {
+                void activityQuery.refetch();
+              }}
+            />
+          ) : activityQuery.data ? (
+            <Stack spacing={3}>
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, mb: 1 }}
+                >
+                  Recent Payments
+                </Typography>
+                <RecentPaymentsTable
+                  rows={activityQuery.data.recentPayments}
+                />
+              </Box>
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, mb: 1 }}
+                >
+                  Recently Added Customers
+                </Typography>
+                <RecentCustomersTable
+                  rows={activityQuery.data.recentCustomers}
+                />
+              </Box>
+            </Stack>
           ) : null}
         </Box>
       ) : null}
