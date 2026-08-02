@@ -89,3 +89,35 @@ export interface RecentActivity {
   recentPayments: RecentPayment[];
   recentCustomers: RecentCustomer[];
 }
+
+/** One row of the agent ranking table. */
+export interface AgentPerformanceRow {
+  rank: number;
+  agentId: string;
+  agentName: string;
+  email: string | null;
+  totalSales: number;
+  thisMonthSales: number;
+  totalCommission: number;
+  pendingCommission: number;
+  paidCommission: number;
+  customerCount: number;
+}
+
+/** The headline agent (the top row), without rank/email. */
+export interface TopAgent {
+  agentId: string;
+  agentName: string;
+  totalSales: number;
+  thisMonthSales: number;
+  totalCommission: number;
+  pendingCommission: number;
+  paidCommission: number;
+  customerCount: number;
+}
+
+/** `GET /api/dashboard/agent-performance`. */
+export interface AgentPerformance {
+  topAgent: TopAgent | null;
+  agents: AgentPerformanceRow[];
+}

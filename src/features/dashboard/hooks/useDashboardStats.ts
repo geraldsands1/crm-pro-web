@@ -4,6 +4,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { ApiError } from '../../../lib/api/types';
 import { dashboardApi } from '../api/dashboardApi';
 import type {
+  AgentPerformance,
   BusinessSnapshot,
   DashboardStats,
   RecentActivity,
@@ -19,6 +20,8 @@ export const dashboardQueryKeys = {
     [...dashboardQueryKeys.all, 'business-snapshot'] as const,
   recentActivity: () =>
     [...dashboardQueryKeys.all, 'recent-activity'] as const,
+  agentPerformance: () =>
+    [...dashboardQueryKeys.all, 'agent-performance'] as const,
 };
 
 /**
@@ -71,6 +74,20 @@ export function useRecentActivity(
   return useQuery<RecentActivity, ApiError>({
     queryKey: dashboardQueryKeys.recentActivity(),
     queryFn: () => dashboardApi.getRecentActivity(),
+    enabled,
+  });
+}
+
+/**
+ * Loads agent performance (admin only). `enabled` keeps an agent — for whom
+ * the endpoint returns 403 — from firing the request.
+ */
+export function useAgentPerformance(
+  enabled: boolean,
+): UseQueryResult<AgentPerformance, ApiError> {
+  return useQuery<AgentPerformance, ApiError>({
+    queryKey: dashboardQueryKeys.agentPerformance(),
+    queryFn: () => dashboardApi.getAgentPerformance(),
     enabled,
   });
 }

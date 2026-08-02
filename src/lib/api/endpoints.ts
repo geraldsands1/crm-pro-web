@@ -21,6 +21,8 @@ export const endpoints = {
     businessSnapshot: '/dashboard/business-snapshot',
     /** GET — latest 10 payments + latest 10 customers. Admin only. */
     recentActivity: '/dashboard/recent-activity',
+    /** GET — per-agent sales + commission, ranked. Admin only. */
+    agentPerformance: '/dashboard/agent-performance',
   },
   customers: {
     /** GET (all, unpaginated) and POST (create). */

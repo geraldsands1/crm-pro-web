@@ -16,11 +16,14 @@ import { formatCurrency, formatNumber } from '../../../lib/format';
 import { StatCard } from '../components/StatCard';
 import { RecentPaymentsTable } from '../components/RecentPaymentsTable';
 import { RecentCustomersTable } from '../components/RecentCustomersTable';
+import { TopAgentCard } from '../components/TopAgentCard';
+import { AgentRankingTable } from '../components/AgentRankingTable';
 import {
   useDashboardStats,
   useSalesSummary,
   useBusinessSnapshot,
   useRecentActivity,
+  useAgentPerformance,
 } from '../hooks/useDashboardStats';
 import { AgentCommissionCards } from '../../agents/components/AgentCommissionCards';
 import { CommissionHistoryTable } from '../../agents/components/CommissionHistoryTable';
@@ -37,6 +40,7 @@ export function DashboardPage() {
   const salesQuery = useSalesSummary(isAdmin);
   const snapshotQuery = useBusinessSnapshot(isAdmin);
   const activityQuery = useRecentActivity(isAdmin);
+  const agentQuery = useAgentPerformance(isAdmin);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -267,6 +271,36 @@ export function DashboardPage() {
                   rows={activityQuery.data.recentCustomers}
                 />
               </Box>
+            </Stack>
+          ) : null}
+        </Box>
+      ) : null}
+
+      {/* Agent performance (admin only) — top agent + ranking. Sales from
+          assigned customers (CRM + IMPORTED); commission read from the ledger,
+          not recomputed. */}
+      {isAdmin ? (
+        <Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+            Agent Performance
+          </Typography>
+
+          {agentQuery.isPending ? (
+            <LoadingState />
+          ) : agentQuery.isError ? (
+            <ErrorState
+              title="Could not load agent performance"
+              message={agentQuery.error.message}
+              onRetry={() => {
+                void agentQuery.refetch();
+              }}
+            />
+          ) : agentQuery.data ? (
+            <Stack spacing={2}>
+              {agentQuery.data.topAgent ? (
+                <TopAgentCard agent={agentQuery.data.topAgent} />
+              ) : null}
+              <AgentRankingTable rows={agentQuery.data.agents} />
             </Stack>
           ) : null}
         </Box>

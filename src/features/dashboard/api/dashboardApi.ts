@@ -3,6 +3,8 @@ import { endpoints } from '../../../lib/api/endpoints';
 import { ApiError } from '../../../lib/api/types';
 import type { ApiDataResponse } from '../../../lib/api/types';
 import type {
+  AgentPerformance,
+  AgentPerformanceRow,
   BusinessSnapshot,
   BusinessSnapshotResponse,
   DashboardStats,
@@ -12,6 +14,7 @@ import type {
   RecentPayment,
   SalesSummary,
   SalesSummaryResponse,
+  TopAgent,
 } from '../types';
 
 /**
@@ -143,7 +146,66 @@ export const dashboardApi = {
       recentCustomers: customers.map(parseRecentCustomer),
     };
   },
+
+  /**
+   * `GET /dashboard/agent-performance` — admin only. Per-agent sales +
+   * commission, ranked. Amounts coerced to numbers defensively.
+   */
+  async getAgentPerformance(): Promise<AgentPerformance> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<AgentPerformanceRaw>
+    >(endpoints.dashboard.agentPerformance);
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load agent performance.',
+        'server',
+      );
+    }
+
+    const agents = Array.isArray(data.data.agents) ? data.data.agents : [];
+
+    return {
+      topAgent: data.data.topAgent ? parseTopAgent(data.data.topAgent) : null,
+      agents: agents.map(parseAgentRow),
+    };
+  },
 };
+
+interface AgentPerformanceRaw {
+  topAgent?: unknown;
+  agents?: unknown[];
+}
+
+function parseTopAgent(raw: unknown): TopAgent {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    agentId: str(r.agentId),
+    agentName: str(r.agentName) || 'Unknown',
+    totalSales: toNumber(r.totalSales),
+    thisMonthSales: toNumber(r.thisMonthSales),
+    totalCommission: toNumber(r.totalCommission),
+    pendingCommission: toNumber(r.pendingCommission),
+    paidCommission: toNumber(r.paidCommission),
+    customerCount: toNumber(r.customerCount),
+  };
+}
+
+function parseAgentRow(raw: unknown): AgentPerformanceRow {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    rank: toNumber(r.rank),
+    agentId: str(r.agentId),
+    agentName: str(r.agentName) || 'Unknown',
+    email: nullableStr(r.email),
+    totalSales: toNumber(r.totalSales),
+    thisMonthSales: toNumber(r.thisMonthSales),
+    totalCommission: toNumber(r.totalCommission),
+    pendingCommission: toNumber(r.pendingCommission),
+    paidCommission: toNumber(r.paidCommission),
+    customerCount: toNumber(r.customerCount),
+  };
+}
 
 interface RecentActivityRaw {
   recentPayments?: unknown[];
