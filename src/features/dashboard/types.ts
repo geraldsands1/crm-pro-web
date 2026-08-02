@@ -136,6 +136,25 @@ export interface MonthlySalesTrend {
   months: MonthlySalesTrendPoint[];
 }
 
+/** The dashboard date-filter presets. */
+export type DateRangePreset =
+  | 'today'
+  | 'this-week'
+  | 'this-month'
+  | 'this-year'
+  | 'last-12-months'
+  | 'custom';
+
+/**
+ * An inclusive date range sent to the dashboard endpoints as ?from&to
+ * (YYYY-MM-DD). Every preset resolves to a concrete range, so the query
+ * layer only ever deals with `from`/`to` strings.
+ */
+export interface DateRange {
+  from: string;
+  to: string;
+}
+
 /** One row of the payment method breakdown. Cash is excluded server-side. */
 export interface PaymentMethodBreakdownItem {
   /** Method label; null/blank becomes "Unknown". */

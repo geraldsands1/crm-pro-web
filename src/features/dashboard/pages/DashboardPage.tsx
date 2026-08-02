@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/PeopleAltOutlined';
 import PersonAddIcon from '@mui/icons-material/PersonAddAlt1Outlined';
@@ -21,6 +22,9 @@ import { AgentRankingTable } from '../components/AgentRankingTable';
 import { MonthlySalesTrendChart } from '../components/MonthlySalesTrendChart';
 import { PaymentMethodBreakdownCard } from '../components/PaymentMethodBreakdownCard';
 import { CustomerGrowthChart } from '../components/CustomerGrowthChart';
+import { DashboardDateFilter } from '../components/DashboardDateFilter';
+import { presetRange, DEFAULT_PRESET } from '../utils/dateRange';
+import type { DateRange, DateRangePreset } from '../types';
 import {
   useDashboardStats,
   useSalesSummary,
@@ -41,15 +45,30 @@ export function DashboardPage() {
   const isAdmin = user?.role === 'admin';
   const { data, isPending, isError, error, refetch } = useDashboardStats();
 
+  // Dashboard date filter (admin sections). Every preset resolves to a
+  // concrete range; default is This Month.
+  const [preset, setPreset] = useState<DateRangePreset>(DEFAULT_PRESET);
+  const [range, setRange] = useState<DateRange>(() =>
+    presetRange(DEFAULT_PRESET),
+  );
+  const handleRangeChange = (
+    nextPreset: DateRangePreset,
+    nextRange: DateRange,
+  ): void => {
+    setPreset(nextPreset);
+    setRange(nextRange);
+  };
+
   // Sales summary and business snapshot are admin-only endpoints; `enabled`
-  // keeps an agent session from firing requests that would 403.
-  const salesQuery = useSalesSummary(isAdmin);
+  // keeps an agent session from firing requests that would 403. The date range
+  // is threaded into every filtered section (snapshot stays lifetime).
+  const salesQuery = useSalesSummary(isAdmin, range);
   const snapshotQuery = useBusinessSnapshot(isAdmin);
-  const activityQuery = useRecentActivity(isAdmin);
-  const agentQuery = useAgentPerformance(isAdmin);
-  const trendQuery = useMonthlySalesTrend(isAdmin);
-  const methodQuery = usePaymentMethodBreakdown(isAdmin);
-  const growthQuery = useCustomerGrowthTrend(isAdmin);
+  const activityQuery = useRecentActivity(isAdmin, range);
+  const agentQuery = useAgentPerformance(isAdmin, range);
+  const trendQuery = useMonthlySalesTrend(isAdmin, range);
+  const methodQuery = usePaymentMethodBreakdown(isAdmin, range);
+  const growthQuery = useCustomerGrowthTrend(isAdmin, range);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -70,6 +89,16 @@ export function DashboardPage() {
             : 'Figures for your own customers.'}
         </Typography>
       </Box>
+
+      {/* Date filter drives every admin section below (not the top stat cards
+          or Business Snapshot, which are lifetime/current metrics). */}
+      {isAdmin ? (
+        <DashboardDateFilter
+          preset={preset}
+          range={range}
+          onChange={handleRangeChange}
+        />
+      ) : null}
 
       {isPending ? <LoadingState /> : null}
 

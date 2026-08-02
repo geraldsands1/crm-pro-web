@@ -10,6 +10,7 @@ import type {
   CustomerGrowthTrend,
   CustomerGrowthTrendPoint,
   DashboardStats,
+  DateRange,
   DashboardStatsResponse,
   MonthlySalesTrend,
   MonthlySalesTrendPoint,
@@ -43,6 +44,14 @@ function toNumber(value: unknown): number {
   }
 
   return 0;
+}
+
+/**
+ * Turns an optional date range into axios query params. Omitted (or absent)
+ * yields no params, so the endpoint keeps its default behavior.
+ */
+function rangeParams(range?: DateRange): Record<string, string> {
+  return range ? { from: range.from, to: range.to } : {};
 }
 
 export const dashboardApi = {
@@ -82,10 +91,10 @@ export const dashboardApi = {
    * month's sales over ALL payments (CRM + IMPORTED). Amounts are coerced to
    * numbers for the same NUMERIC-as-string reason as the stats above.
    */
-  async getSalesSummary(): Promise<SalesSummary> {
+  async getSalesSummary(range?: DateRange): Promise<SalesSummary> {
     const { data } = await apiClient.get<
       ApiDataResponse<SalesSummaryResponse>
-    >(endpoints.dashboard.salesSummary);
+    >(endpoints.dashboard.salesSummary, { params: rangeParams(range) });
 
     if (!data.success || !data.data) {
       throw new ApiError(
@@ -128,9 +137,10 @@ export const dashboardApi = {
    * `GET /dashboard/recent-activity` — admin only. Latest 10 payments (CRM +
    * IMPORTED) and latest 10 customers, parsed defensively.
    */
-  async getRecentActivity(): Promise<RecentActivity> {
+  async getRecentActivity(range?: DateRange): Promise<RecentActivity> {
     const { data } = await apiClient.get<ApiDataResponse<RecentActivityRaw>>(
       endpoints.dashboard.recentActivity,
+      { params: rangeParams(range) },
     );
 
     if (!data.success || !data.data) {
@@ -157,10 +167,10 @@ export const dashboardApi = {
    * `GET /dashboard/agent-performance` — admin only. Per-agent sales +
    * commission, ranked. Amounts coerced to numbers defensively.
    */
-  async getAgentPerformance(): Promise<AgentPerformance> {
+  async getAgentPerformance(range?: DateRange): Promise<AgentPerformance> {
     const { data } = await apiClient.get<
       ApiDataResponse<AgentPerformanceRaw>
-    >(endpoints.dashboard.agentPerformance);
+    >(endpoints.dashboard.agentPerformance, { params: rangeParams(range) });
 
     if (!data.success || !data.data) {
       throw new ApiError(
@@ -181,10 +191,10 @@ export const dashboardApi = {
    * `GET /dashboard/monthly-sales-trend` — admin only. Last 12 months of
    * sales, oldest to newest. Sales coerced to numbers defensively.
    */
-  async getMonthlySalesTrend(): Promise<MonthlySalesTrend> {
+  async getMonthlySalesTrend(range?: DateRange): Promise<MonthlySalesTrend> {
     const { data } = await apiClient.get<
       ApiDataResponse<MonthlySalesTrendRaw>
-    >(endpoints.dashboard.monthlySalesTrend);
+    >(endpoints.dashboard.monthlySalesTrend, { params: rangeParams(range) });
 
     if (!data.success || !data.data) {
       throw new ApiError(
@@ -202,10 +212,14 @@ export const dashboardApi = {
    * count per payment method (CRM + IMPORTED, cash excluded), each with its
    * share of the total. Amounts coerced to numbers defensively.
    */
-  async getPaymentMethodBreakdown(): Promise<PaymentMethodBreakdown> {
+  async getPaymentMethodBreakdown(
+    range?: DateRange,
+  ): Promise<PaymentMethodBreakdown> {
     const { data } = await apiClient.get<
       ApiDataResponse<PaymentMethodBreakdownRaw>
-    >(endpoints.dashboard.paymentMethodBreakdown);
+    >(endpoints.dashboard.paymentMethodBreakdown, {
+      params: rangeParams(range),
+    });
 
     if (!data.success || !data.data) {
       throw new ApiError(
@@ -225,10 +239,12 @@ export const dashboardApi = {
    * month over the last 12 months, oldest to newest. Counts coerced to
    * numbers defensively.
    */
-  async getCustomerGrowthTrend(): Promise<CustomerGrowthTrend> {
+  async getCustomerGrowthTrend(
+    range?: DateRange,
+  ): Promise<CustomerGrowthTrend> {
     const { data } = await apiClient.get<
       ApiDataResponse<CustomerGrowthTrendRaw>
-    >(endpoints.dashboard.customerGrowthTrend);
+    >(endpoints.dashboard.customerGrowthTrend, { params: rangeParams(range) });
 
     if (!data.success || !data.data) {
       throw new ApiError(
