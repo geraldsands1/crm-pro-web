@@ -15,4 +15,8 @@ export const agentKeys = {
   commissions: () => [...agentKeys.all, 'commission'] as const,
   /** RC2.8: one agent's commission stats + history. */
   commission: (id: string) => [...agentKeys.commissions(), id] as const,
+  /** All agent reports, for blanket invalidation. */
+  reports: () => [...agentKeys.all, 'report'] as const,
+  /** One agent's detailed report. */
+  report: (id: string) => [...agentKeys.reports(), id] as const,
 };

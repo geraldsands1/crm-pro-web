@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
-import { Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { DataTable } from '../../../components/data/DataTable';
 import type { DataTableColumn } from '../../../components/data/DataTable';
 import { EmptyState } from '../../../components/feedback/EmptyState';
+import { agentReportPath } from '../../../app/router/routes';
 import { formatCurrency, formatNumber, orDash } from '../../../lib/format';
 import type { AgentPerformanceRow } from '../types';
 
@@ -65,6 +67,21 @@ export function AgentRankingTable({
         align: 'right',
         hideBelow: 'lg',
         render: (r) => formatCurrency(r.paidCommission),
+      },
+      {
+        id: 'actions',
+        label: '',
+        align: 'right',
+        render: (r) => (
+          <Button
+            component={RouterLink}
+            to={agentReportPath(r.agentId)}
+            size="small"
+            variant="outlined"
+          >
+            View Report
+          </Button>
+        ),
       },
     ],
     [],

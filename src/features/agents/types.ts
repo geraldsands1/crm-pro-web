@@ -98,3 +98,53 @@ export interface AgentSort {
   field: AgentSortField;
   direction: SortDirection;
 }
+
+/**
+ * `GET /api/agents/:id/report` — the admin-only Agent Detailed Report.
+ *
+ * Sales come from the agent's assigned customers over BOTH payment sources
+ * (CRM + IMPORTED); commission is read from the commission ledger, never
+ * recomputed. Numeric fields are coerced client-side for the usual
+ * NUMERIC-as-string reason.
+ */
+export interface AgentReportIdentity {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+}
+
+export interface AgentReportSummary {
+  assignedCustomers: number;
+  totalSales: number;
+  thisMonthSales: number;
+  totalCommission: number;
+  pendingCommission: number;
+  paidCommission: number;
+}
+
+export interface AgentReportPayment {
+  id: string;
+  customerName: string;
+  amount: number;
+  method: string | null;
+  source: string;
+  paidAt: string;
+}
+
+export interface AgentReportCustomer {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  status: string;
+  createdAt: string;
+  totalPaid: number;
+}
+
+export interface AgentReport {
+  agent: AgentReportIdentity;
+  summary: AgentReportSummary;
+  recentPayments: AgentReportPayment[];
+  customers: AgentReportCustomer[];
+}

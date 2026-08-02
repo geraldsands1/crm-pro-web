@@ -59,6 +59,11 @@ const AgentEditPage = lazy(() =>
     default: m.AgentEditPage,
   })),
 );
+const AgentReportPage = lazy(() =>
+  import('../../features/agents/pages/AgentReportPage').then((m) => ({
+    default: m.AgentReportPage,
+  })),
+);
 const PaymentsListPage = lazy(() =>
   import('../../features/payments/pages/PaymentsListPage').then((m) => ({
     default: m.PaymentsListPage,
@@ -141,6 +146,10 @@ export function AppRouter() {
               <Route path={appRoutes.agents} element={<AgentListPage />} />
               <Route path={appRoutes.agentNew} element={<AgentCreatePage />} />
               <Route path={appRoutes.agentEdit} element={<AgentEditPage />} />
+              <Route
+                path={appRoutes.agentReport}
+                element={<AgentReportPage />}
+              />
 
               {/* Import Wizard — admin only, matching the backend's
                   authorize("admin") on every /api/imports route. */}

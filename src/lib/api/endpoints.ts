@@ -48,6 +48,8 @@ export const endpoints = {
      * only their own — enforced server-side.
      */
     commission: (id: string) => `/agents/${id}/commission`,
+    /** GET the detailed performance report for one agent. Admin only. */
+    report: (id: string) => `/agents/${id}/report`,
   },
   payments: {
     /** GET (`?customer_id=`) and POST (record). There is no PUT route. */

@@ -5,9 +5,55 @@ import type { ApiDataResponse, ApiEnvelope } from '../../../lib/api/types';
 import type {
   Agent,
   AgentCommissionStats,
+  AgentReport,
+  AgentReportCustomer,
+  AgentReportPayment,
   CreateAgentInput,
   UpdateAgentInput,
 } from '../types';
+
+/** Coerce NUMERIC-as-string / missing values to a finite number. */
+function toNumber(value: unknown): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function str(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function nullableStr(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function parseReportPayment(raw: unknown): AgentReportPayment {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    id: str(r.id),
+    customerName: str(r.customerName) || 'Unknown',
+    amount: toNumber(r.amount),
+    method: nullableStr(r.method),
+    source: str(r.source) || 'CRM',
+    paidAt: str(r.paidAt),
+  };
+}
+
+function parseReportCustomer(raw: unknown): AgentReportCustomer {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    id: str(r.id),
+    name: str(r.name) || 'Unknown',
+    phone: nullableStr(r.phone),
+    email: nullableStr(r.email),
+    status: str(r.status),
+    createdAt: str(r.createdAt),
+    totalPaid: toNumber(r.totalPaid),
+  };
+}
 
 export const agentsApi = {
   /**
@@ -88,5 +134,47 @@ export const agentsApi = {
 
     ensureSuccess(data, 'Could not load commission statistics.');
     return data.data;
+  },
+
+  /**
+   * `GET /agents/:id/report` — the admin-only detailed report for one agent.
+   *
+   * A missing or non-agent id returns 404, which the interceptor turns into
+   * an `ApiError` of kind `notFound`. Numeric fields are coerced defensively
+   * (NUMERIC aggregates arrive as strings).
+   */
+  async getReport(id: string): Promise<AgentReport> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<Record<string, unknown>>
+    >(endpoints.agents.report(id));
+
+    ensureSuccess(data, 'Could not load the agent report.');
+
+    const d = data.data;
+    const agent = (d.agent ?? {}) as Record<string, unknown>;
+    const summary = (d.summary ?? {}) as Record<string, unknown>;
+
+    return {
+      agent: {
+        id: str(agent.id),
+        name: str(agent.name) || 'Unknown',
+        email: str(agent.email),
+        isActive: Boolean(agent.isActive),
+      },
+      summary: {
+        assignedCustomers: toNumber(summary.assignedCustomers),
+        totalSales: toNumber(summary.totalSales),
+        thisMonthSales: toNumber(summary.thisMonthSales),
+        totalCommission: toNumber(summary.totalCommission),
+        pendingCommission: toNumber(summary.pendingCommission),
+        paidCommission: toNumber(summary.paidCommission),
+      },
+      recentPayments: Array.isArray(d.recentPayments)
+        ? d.recentPayments.map(parseReportPayment)
+        : [],
+      customers: Array.isArray(d.customers)
+        ? d.customers.map(parseReportCustomer)
+        : [],
+    };
   },
 };

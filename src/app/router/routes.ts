@@ -24,6 +24,13 @@ export const appRoutes = {
   /** Declared before `:agentId` in AppRouter, as with customers. */
   agentNew: '/agents/new',
   agentEdit: '/agents/:agentId/edit',
+  /** Admin-only detailed performance report for one agent. */
+  agentReport: '/agents/:agentId/report',
 } as const;
+
+/** Build a concrete agent-report path for navigation/links. */
+export function agentReportPath(agentId: string): string {
+  return `/agents/${agentId}/report`;
+}
 
 export type AppRoute = (typeof appRoutes)[keyof typeof appRoutes];
