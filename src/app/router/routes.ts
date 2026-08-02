@@ -20,6 +20,7 @@ export const appRoutes = {
   payments: '/payments',
   commission: '/commission',
   importData: '/import',
+  reports: '/reports',
   agents: '/agents',
   /** Declared before `:agentId` in AppRouter, as with customers. */
   agentNew: '/agents/new',

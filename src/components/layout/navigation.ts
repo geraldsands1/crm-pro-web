@@ -4,6 +4,7 @@ import PaymentsIcon from '@mui/icons-material/PaymentsOutlined';
 import CommissionIcon from '@mui/icons-material/PaidOutlined';
 import ImportIcon from '@mui/icons-material/UploadFileOutlined';
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
+import ReportsIcon from '@mui/icons-material/AssessmentOutlined';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 import { appRoutes } from '../../app/router/routes';
@@ -67,6 +68,12 @@ export const navItems: readonly NavItem[] = [
     label: 'Import Data',
     path: appRoutes.importData,
     icon: ImportIcon,
+    roles: ['admin'],
+  },
+  {
+    label: 'Reports',
+    path: appRoutes.reports,
+    icon: ReportsIcon,
     roles: ['admin'],
   },
 ];

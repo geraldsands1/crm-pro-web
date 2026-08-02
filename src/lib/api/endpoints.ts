@@ -51,6 +51,13 @@ export const endpoints = {
     /** GET the detailed performance report for one agent. Admin only. */
     report: (id: string) => `/agents/${id}/report`,
   },
+  reports: {
+    /** GET .xlsx exports. Admin only, server-enforced. */
+    exportCustomers: '/reports/export/customers',
+    exportPayments: '/reports/export/payments',
+    exportAgents: '/reports/export/agents',
+    exportCommissions: '/reports/export/commissions',
+  },
   payments: {
     /** GET (`?customer_id=`) and POST (record). There is no PUT route. */
     root: '/payments',

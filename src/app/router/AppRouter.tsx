@@ -79,6 +79,11 @@ const ImportWizardPage = lazy(() =>
     default: m.ImportWizardPage,
   })),
 );
+const ReportsPage = lazy(() =>
+  import('../../features/reports/pages/ReportsPage').then((m) => ({
+    default: m.ReportsPage,
+  })),
+);
 
 /**
  * The route tree.
@@ -157,6 +162,10 @@ export function AppRouter() {
                 path={appRoutes.importData}
                 element={<ImportWizardPage />}
               />
+
+              {/* Reports & Exports — admin only, matching the backend's
+                  authorize("admin") on every /api/reports route. */}
+              <Route path={appRoutes.reports} element={<ReportsPage />} />
             </Route>
           </Route>
         </Route>
