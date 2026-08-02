@@ -18,12 +18,14 @@ import { RecentPaymentsTable } from '../components/RecentPaymentsTable';
 import { RecentCustomersTable } from '../components/RecentCustomersTable';
 import { TopAgentCard } from '../components/TopAgentCard';
 import { AgentRankingTable } from '../components/AgentRankingTable';
+import { MonthlySalesTrendChart } from '../components/MonthlySalesTrendChart';
 import {
   useDashboardStats,
   useSalesSummary,
   useBusinessSnapshot,
   useRecentActivity,
   useAgentPerformance,
+  useMonthlySalesTrend,
 } from '../hooks/useDashboardStats';
 import { AgentCommissionCards } from '../../agents/components/AgentCommissionCards';
 import { CommissionHistoryTable } from '../../agents/components/CommissionHistoryTable';
@@ -41,6 +43,7 @@ export function DashboardPage() {
   const snapshotQuery = useBusinessSnapshot(isAdmin);
   const activityQuery = useRecentActivity(isAdmin);
   const agentQuery = useAgentPerformance(isAdmin);
+  const trendQuery = useMonthlySalesTrend(isAdmin);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -172,6 +175,29 @@ export function DashboardPage() {
                 tone="primary"
               />
             </Box>
+          ) : null}
+        </Box>
+      ) : null}
+
+      {/* Monthly sales trend (admin only) — last 12 months, CRM + IMPORTED. */}
+      {isAdmin ? (
+        <Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+            Monthly Sales Trend
+          </Typography>
+
+          {trendQuery.isPending ? (
+            <LoadingState />
+          ) : trendQuery.isError ? (
+            <ErrorState
+              title="Could not load the sales trend"
+              message={trendQuery.error.message}
+              onRetry={() => {
+                void trendQuery.refetch();
+              }}
+            />
+          ) : trendQuery.data ? (
+            <MonthlySalesTrendChart months={trendQuery.data.months} />
           ) : null}
         </Box>
       ) : null}

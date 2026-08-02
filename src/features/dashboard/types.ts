@@ -121,3 +121,17 @@ export interface AgentPerformance {
   topAgent: TopAgent | null;
   agents: AgentPerformanceRow[];
 }
+
+/** One month in the sales-trend chart. */
+export interface MonthlySalesTrendPoint {
+  /** Sortable key, e.g. "2026-03". */
+  month: string;
+  /** Display label, e.g. "Mar 2026". */
+  label: string;
+  sales: number;
+}
+
+/** `GET /api/dashboard/monthly-sales-trend`. */
+export interface MonthlySalesTrend {
+  months: MonthlySalesTrendPoint[];
+}

@@ -7,6 +7,7 @@ import type {
   AgentPerformance,
   BusinessSnapshot,
   DashboardStats,
+  MonthlySalesTrend,
   RecentActivity,
   SalesSummary,
 } from '../types';
@@ -22,6 +23,8 @@ export const dashboardQueryKeys = {
     [...dashboardQueryKeys.all, 'recent-activity'] as const,
   agentPerformance: () =>
     [...dashboardQueryKeys.all, 'agent-performance'] as const,
+  monthlySalesTrend: () =>
+    [...dashboardQueryKeys.all, 'monthly-sales-trend'] as const,
 };
 
 /**
@@ -88,6 +91,20 @@ export function useAgentPerformance(
   return useQuery<AgentPerformance, ApiError>({
     queryKey: dashboardQueryKeys.agentPerformance(),
     queryFn: () => dashboardApi.getAgentPerformance(),
+    enabled,
+  });
+}
+
+/**
+ * Loads the monthly sales trend (admin only). `enabled` keeps an agent — for
+ * whom the endpoint returns 403 — from firing the request.
+ */
+export function useMonthlySalesTrend(
+  enabled: boolean,
+): UseQueryResult<MonthlySalesTrend, ApiError> {
+  return useQuery<MonthlySalesTrend, ApiError>({
+    queryKey: dashboardQueryKeys.monthlySalesTrend(),
+    queryFn: () => dashboardApi.getMonthlySalesTrend(),
     enabled,
   });
 }

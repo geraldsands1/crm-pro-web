@@ -9,6 +9,8 @@ import type {
   BusinessSnapshotResponse,
   DashboardStats,
   DashboardStatsResponse,
+  MonthlySalesTrend,
+  MonthlySalesTrendPoint,
   RecentActivity,
   RecentCustomer,
   RecentPayment,
@@ -170,7 +172,40 @@ export const dashboardApi = {
       agents: agents.map(parseAgentRow),
     };
   },
+
+  /**
+   * `GET /dashboard/monthly-sales-trend` — admin only. Last 12 months of
+   * sales, oldest to newest. Sales coerced to numbers defensively.
+   */
+  async getMonthlySalesTrend(): Promise<MonthlySalesTrend> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<MonthlySalesTrendRaw>
+    >(endpoints.dashboard.monthlySalesTrend);
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load the sales trend.',
+        'server',
+      );
+    }
+
+    const months = Array.isArray(data.data.months) ? data.data.months : [];
+    return { months: months.map(parseMonthPoint) };
+  },
 };
+
+interface MonthlySalesTrendRaw {
+  months?: unknown[];
+}
+
+function parseMonthPoint(raw: unknown): MonthlySalesTrendPoint {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    month: str(r.month),
+    label: str(r.label) || str(r.month),
+    sales: toNumber(r.sales),
+  };
+}
 
 interface AgentPerformanceRaw {
   topAgent?: unknown;
