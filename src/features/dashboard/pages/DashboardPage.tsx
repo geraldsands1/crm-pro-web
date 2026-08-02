@@ -20,6 +20,7 @@ import { TopAgentCard } from '../components/TopAgentCard';
 import { AgentRankingTable } from '../components/AgentRankingTable';
 import { MonthlySalesTrendChart } from '../components/MonthlySalesTrendChart';
 import { PaymentMethodBreakdownCard } from '../components/PaymentMethodBreakdownCard';
+import { CustomerGrowthChart } from '../components/CustomerGrowthChart';
 import {
   useDashboardStats,
   useSalesSummary,
@@ -28,6 +29,7 @@ import {
   useAgentPerformance,
   useMonthlySalesTrend,
   usePaymentMethodBreakdown,
+  useCustomerGrowthTrend,
 } from '../hooks/useDashboardStats';
 import { AgentCommissionCards } from '../../agents/components/AgentCommissionCards';
 import { CommissionHistoryTable } from '../../agents/components/CommissionHistoryTable';
@@ -47,6 +49,7 @@ export function DashboardPage() {
   const agentQuery = useAgentPerformance(isAdmin);
   const trendQuery = useMonthlySalesTrend(isAdmin);
   const methodQuery = usePaymentMethodBreakdown(isAdmin);
+  const growthQuery = useCustomerGrowthTrend(isAdmin);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -225,6 +228,30 @@ export function DashboardPage() {
             />
           ) : methodQuery.data ? (
             <PaymentMethodBreakdownCard methods={methodQuery.data.methods} />
+          ) : null}
+        </Box>
+      ) : null}
+
+      {/* Customer growth (admin only) — new customers per month over the last
+          12 months (customers.created_at). No payments/commission. */}
+      {isAdmin ? (
+        <Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+            Customer Growth
+          </Typography>
+
+          {growthQuery.isPending ? (
+            <LoadingState />
+          ) : growthQuery.isError ? (
+            <ErrorState
+              title="Could not load customer growth"
+              message={growthQuery.error.message}
+              onRetry={() => {
+                void growthQuery.refetch();
+              }}
+            />
+          ) : growthQuery.data ? (
+            <CustomerGrowthChart months={growthQuery.data.months} />
           ) : null}
         </Box>
       ) : null}

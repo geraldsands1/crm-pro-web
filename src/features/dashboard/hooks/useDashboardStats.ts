@@ -6,6 +6,7 @@ import { dashboardApi } from '../api/dashboardApi';
 import type {
   AgentPerformance,
   BusinessSnapshot,
+  CustomerGrowthTrend,
   DashboardStats,
   MonthlySalesTrend,
   PaymentMethodBreakdown,
@@ -28,6 +29,8 @@ export const dashboardQueryKeys = {
     [...dashboardQueryKeys.all, 'monthly-sales-trend'] as const,
   paymentMethodBreakdown: () =>
     [...dashboardQueryKeys.all, 'payment-method-breakdown'] as const,
+  customerGrowthTrend: () =>
+    [...dashboardQueryKeys.all, 'customer-growth-trend'] as const,
 };
 
 /**
@@ -122,6 +125,20 @@ export function usePaymentMethodBreakdown(
   return useQuery<PaymentMethodBreakdown, ApiError>({
     queryKey: dashboardQueryKeys.paymentMethodBreakdown(),
     queryFn: () => dashboardApi.getPaymentMethodBreakdown(),
+    enabled,
+  });
+}
+
+/**
+ * Loads the customer growth trend (admin only). `enabled` keeps an agent —
+ * for whom the endpoint returns 403 — from firing the request.
+ */
+export function useCustomerGrowthTrend(
+  enabled: boolean,
+): UseQueryResult<CustomerGrowthTrend, ApiError> {
+  return useQuery<CustomerGrowthTrend, ApiError>({
+    queryKey: dashboardQueryKeys.customerGrowthTrend(),
+    queryFn: () => dashboardApi.getCustomerGrowthTrend(),
     enabled,
   });
 }

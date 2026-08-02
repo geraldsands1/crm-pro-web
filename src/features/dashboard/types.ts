@@ -150,3 +150,18 @@ export interface PaymentMethodBreakdownItem {
 export interface PaymentMethodBreakdown {
   methods: PaymentMethodBreakdownItem[];
 }
+
+/** One month in the customer-growth chart. */
+export interface CustomerGrowthTrendPoint {
+  /** Sortable key, e.g. "2026-03". */
+  month: string;
+  /** Display label, e.g. "Mar 2026". */
+  label: string;
+  /** New customers created that month. */
+  customers: number;
+}
+
+/** `GET /api/dashboard/customer-growth-trend`. */
+export interface CustomerGrowthTrend {
+  months: CustomerGrowthTrendPoint[];
+}

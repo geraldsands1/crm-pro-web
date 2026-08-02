@@ -7,6 +7,8 @@ import type {
   AgentPerformanceRow,
   BusinessSnapshot,
   BusinessSnapshotResponse,
+  CustomerGrowthTrend,
+  CustomerGrowthTrendPoint,
   DashboardStats,
   DashboardStatsResponse,
   MonthlySalesTrend,
@@ -217,7 +219,41 @@ export const dashboardApi = {
       : [];
     return { methods: methods.map(parseMethodItem) };
   },
+
+  /**
+   * `GET /dashboard/customer-growth-trend` — admin only. New customers per
+   * month over the last 12 months, oldest to newest. Counts coerced to
+   * numbers defensively.
+   */
+  async getCustomerGrowthTrend(): Promise<CustomerGrowthTrend> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<CustomerGrowthTrendRaw>
+    >(endpoints.dashboard.customerGrowthTrend);
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load the customer growth trend.',
+        'server',
+      );
+    }
+
+    const months = Array.isArray(data.data.months) ? data.data.months : [];
+    return { months: months.map(parseGrowthPoint) };
+  },
 };
+
+interface CustomerGrowthTrendRaw {
+  months?: unknown[];
+}
+
+function parseGrowthPoint(raw: unknown): CustomerGrowthTrendPoint {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    month: str(r.month),
+    label: str(r.label) || str(r.month),
+    customers: toNumber(r.customers),
+  };
+}
 
 interface PaymentMethodBreakdownRaw {
   methods?: unknown[];

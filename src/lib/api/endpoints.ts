@@ -27,6 +27,8 @@ export const endpoints = {
     monthlySalesTrend: '/dashboard/monthly-sales-trend',
     /** GET — total + count per payment method (cash excluded). Admin only. */
     paymentMethodBreakdown: '/dashboard/payment-method-breakdown',
+    /** GET — new customers per month, last 12 months. Admin only. */
+    customerGrowthTrend: '/dashboard/customer-growth-trend',
   },
   customers: {
     /** GET (all, unpaginated) and POST (create). */
