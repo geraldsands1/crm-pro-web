@@ -11,6 +11,8 @@ import type {
   DashboardStatsResponse,
   MonthlySalesTrend,
   MonthlySalesTrendPoint,
+  PaymentMethodBreakdown,
+  PaymentMethodBreakdownItem,
   RecentActivity,
   RecentCustomer,
   RecentPayment,
@@ -192,7 +194,44 @@ export const dashboardApi = {
     const months = Array.isArray(data.data.months) ? data.data.months : [];
     return { months: months.map(parseMonthPoint) };
   },
+
+  /**
+   * `GET /dashboard/payment-method-breakdown` — admin only. Total amount and
+   * count per payment method (CRM + IMPORTED, cash excluded), each with its
+   * share of the total. Amounts coerced to numbers defensively.
+   */
+  async getPaymentMethodBreakdown(): Promise<PaymentMethodBreakdown> {
+    const { data } = await apiClient.get<
+      ApiDataResponse<PaymentMethodBreakdownRaw>
+    >(endpoints.dashboard.paymentMethodBreakdown);
+
+    if (!data.success || !data.data) {
+      throw new ApiError(
+        data.message ?? 'Could not load the payment method breakdown.',
+        'server',
+      );
+    }
+
+    const methods = Array.isArray(data.data.methods)
+      ? data.data.methods
+      : [];
+    return { methods: methods.map(parseMethodItem) };
+  },
 };
+
+interface PaymentMethodBreakdownRaw {
+  methods?: unknown[];
+}
+
+function parseMethodItem(raw: unknown): PaymentMethodBreakdownItem {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    method: str(r.method) || 'Unknown',
+    totalAmount: toNumber(r.totalAmount),
+    paymentCount: toNumber(r.paymentCount),
+    percentage: toNumber(r.percentage),
+  };
+}
 
 interface MonthlySalesTrendRaw {
   months?: unknown[];

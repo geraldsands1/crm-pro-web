@@ -135,3 +135,18 @@ export interface MonthlySalesTrendPoint {
 export interface MonthlySalesTrend {
   months: MonthlySalesTrendPoint[];
 }
+
+/** One row of the payment method breakdown. Cash is excluded server-side. */
+export interface PaymentMethodBreakdownItem {
+  /** Method label; null/blank becomes "Unknown". */
+  method: string;
+  totalAmount: number;
+  paymentCount: number;
+  /** Share of the (cash-excluded) total, 0–100. */
+  percentage: number;
+}
+
+/** `GET /api/dashboard/payment-method-breakdown`. */
+export interface PaymentMethodBreakdown {
+  methods: PaymentMethodBreakdownItem[];
+}

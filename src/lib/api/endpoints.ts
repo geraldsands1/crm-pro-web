@@ -25,6 +25,8 @@ export const endpoints = {
     agentPerformance: '/dashboard/agent-performance',
     /** GET — last 12 months of sales (all payments). Admin only. */
     monthlySalesTrend: '/dashboard/monthly-sales-trend',
+    /** GET — total + count per payment method (cash excluded). Admin only. */
+    paymentMethodBreakdown: '/dashboard/payment-method-breakdown',
   },
   customers: {
     /** GET (all, unpaginated) and POST (create). */

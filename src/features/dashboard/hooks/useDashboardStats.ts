@@ -8,6 +8,7 @@ import type {
   BusinessSnapshot,
   DashboardStats,
   MonthlySalesTrend,
+  PaymentMethodBreakdown,
   RecentActivity,
   SalesSummary,
 } from '../types';
@@ -25,6 +26,8 @@ export const dashboardQueryKeys = {
     [...dashboardQueryKeys.all, 'agent-performance'] as const,
   monthlySalesTrend: () =>
     [...dashboardQueryKeys.all, 'monthly-sales-trend'] as const,
+  paymentMethodBreakdown: () =>
+    [...dashboardQueryKeys.all, 'payment-method-breakdown'] as const,
 };
 
 /**
@@ -105,6 +108,20 @@ export function useMonthlySalesTrend(
   return useQuery<MonthlySalesTrend, ApiError>({
     queryKey: dashboardQueryKeys.monthlySalesTrend(),
     queryFn: () => dashboardApi.getMonthlySalesTrend(),
+    enabled,
+  });
+}
+
+/**
+ * Loads the payment method breakdown (admin only). `enabled` keeps an agent —
+ * for whom the endpoint returns 403 — from firing the request.
+ */
+export function usePaymentMethodBreakdown(
+  enabled: boolean,
+): UseQueryResult<PaymentMethodBreakdown, ApiError> {
+  return useQuery<PaymentMethodBreakdown, ApiError>({
+    queryKey: dashboardQueryKeys.paymentMethodBreakdown(),
+    queryFn: () => dashboardApi.getPaymentMethodBreakdown(),
     enabled,
   });
 }

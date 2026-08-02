@@ -19,6 +19,7 @@ import { RecentCustomersTable } from '../components/RecentCustomersTable';
 import { TopAgentCard } from '../components/TopAgentCard';
 import { AgentRankingTable } from '../components/AgentRankingTable';
 import { MonthlySalesTrendChart } from '../components/MonthlySalesTrendChart';
+import { PaymentMethodBreakdownCard } from '../components/PaymentMethodBreakdownCard';
 import {
   useDashboardStats,
   useSalesSummary,
@@ -26,6 +27,7 @@ import {
   useRecentActivity,
   useAgentPerformance,
   useMonthlySalesTrend,
+  usePaymentMethodBreakdown,
 } from '../hooks/useDashboardStats';
 import { AgentCommissionCards } from '../../agents/components/AgentCommissionCards';
 import { CommissionHistoryTable } from '../../agents/components/CommissionHistoryTable';
@@ -44,6 +46,7 @@ export function DashboardPage() {
   const activityQuery = useRecentActivity(isAdmin);
   const agentQuery = useAgentPerformance(isAdmin);
   const trendQuery = useMonthlySalesTrend(isAdmin);
+  const methodQuery = usePaymentMethodBreakdown(isAdmin);
 
   // RC2.8: an agent sees their own commission summary here (the Agents
   // module is admin-only, so this is where they reach it). Empty id for an
@@ -198,6 +201,30 @@ export function DashboardPage() {
             />
           ) : trendQuery.data ? (
             <MonthlySalesTrendChart months={trendQuery.data.months} />
+          ) : null}
+        </Box>
+      ) : null}
+
+      {/* Payment method breakdown (admin only) — total + count per method over
+          all payments (CRM + IMPORTED), cash excluded. No commission. */}
+      {isAdmin ? (
+        <Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+            Payment Method Breakdown
+          </Typography>
+
+          {methodQuery.isPending ? (
+            <LoadingState />
+          ) : methodQuery.isError ? (
+            <ErrorState
+              title="Could not load the payment method breakdown"
+              message={methodQuery.error.message}
+              onRetry={() => {
+                void methodQuery.refetch();
+              }}
+            />
+          ) : methodQuery.data ? (
+            <PaymentMethodBreakdownCard methods={methodQuery.data.methods} />
           ) : null}
         </Box>
       ) : null}
